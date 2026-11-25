@@ -18,6 +18,10 @@ export const SEASON_PRODUCTION_MULTIPLIER: Readonly<
   Partial<Record<ResourceId, Readonly<Record<Season, number>>>>
 > = {
   sap: { spring: 1.25, summer: 1.5, autumn: 0.75, winter: 0.1 },
+  litter: { spring: 0.5, summer: 0.5, autumn: 3, winter: 0.5 },
+  nectar: { spring: 1.5, summer: 1, autumn: 0.25, winter: 0 },
+  seeds: { spring: 1, summer: 1, autumn: 2, winter: 0 },
+  berries: { spring: 0, summer: 1, autumn: 2, winter: 0 },
 };
 
 /** Seasons when seedlings stop growing (winter dormancy). */

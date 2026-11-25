@@ -1,9 +1,11 @@
 import type { DiscoveryId } from '../data/discoveries';
 import { PLANT_IDS, type PlantId } from '../data/plants';
 import { RESOURCE_IDS, RESOURCES, type ResourceId } from '../data/resources';
+import { SPECIES_IDS, type SpeciesId } from '../data/species';
 
 export type Resources = Readonly<Record<ResourceId, number>>;
 export type PlantCounts = Readonly<Record<PlantId, number>>;
+export type SpeciesCounts = Readonly<Record<SpeciesId, number>>;
 
 export interface Seedling {
   readonly plant: PlantId;
@@ -26,6 +28,10 @@ export interface GameState {
   readonly seedlings: readonly Seedling[];
   /** In the order they were made. */
   readonly discoveries: readonly DiscoveryId[];
+  /** Population of each species (fractional: individuals come and go gradually). */
+  readonly animals: SpeciesCounts;
+  /** Niches the player gave to each species (whole numbers). */
+  readonly assignments: SpeciesCounts;
   /** Internal state of the seeded RNG (see engine/rng.ts). */
   readonly rng: number;
 }
@@ -46,6 +52,14 @@ export function noPlants(): Record<PlantId, number> {
   return plants;
 }
 
+export function noAnimals(): Record<SpeciesId, number> {
+  const animals = {} as Record<SpeciesId, number>;
+  for (const id of SPECIES_IDS) {
+    animals[id] = 0;
+  }
+  return animals;
+}
+
 export function createInitialState(seed: number): GameState {
   return {
     days: 0,
@@ -53,6 +67,8 @@ export function createInitialState(seed: number): GameState {
     plants: noPlants(),
     seedlings: [],
     discoveries: [],
+    animals: noAnimals(),
+    assignments: noAnimals(),
     rng: seed >>> 0,
   };
 }

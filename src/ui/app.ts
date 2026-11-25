@@ -1,38 +1,51 @@
 import { getCalendar } from '../engine/calendar';
 import type { GameState } from '../engine/state';
-import { getEra, isResourceVisible } from '../engine/unlocks';
-import { t } from '../i18n';
-import { button, classSlot, h, hiddenSlot, textSlot } from './dom';
+import { SPECIES_IDS } from '../data/species';
+import { getProduction } from '../engine/production';
+import { getEra, isBalanceActive, isResourceVisible, isSpeciesUnlocked } from '../engine/unlocks';
+import { getLocale, t } from '../i18n';
+import { button, classSlot, h, hiddenSlot, slot, textSlot } from './dom';
+import { createFaunaTab } from './faunaTab';
 import { createForestTab, type Act } from './forestTab';
-import { roman } from './format';
+import { formatNumber, formatPercent, roman } from './format';
 import type { Journal } from './journal';
 import { createMyceliumTab } from './myceliumTab';
 import { createNarrator } from './narrator';
 import { createResourcesPanel } from './resourcesPanel';
 
-type TabId = 'forest' | 'mycelium';
+type TabId = 'forest' | 'mycelium' | 'fauna';
 
-/** Builds the screen once and returns a render function that only writes what changed. */
-export function mountApp(
-  root: HTMLElement,
-  journal: Journal,
-  act: Act,
-): (state: GameState) => void {
+export interface App {
+  /** Writes only what changed since the last render. */
+  render(state: GameState): void;
+  /** Replaces the whole state (import, reset) without narrating the difference. */
+  replace(state: GameState): void;
+}
+
+/** Builds the screen once; rendering then only writes what changed. */
+export function mountApp(root: HTMLElement, journal: Journal, act: Act): App {
   const era = h('p', { className: 'era' });
   const setEra = textSlot(era);
   const date = h('p', { className: 'date' });
   const setDate = textSlot(date);
+  const balance = h('p', { className: 'balance' });
+  const setBalance = textSlot(balance);
+  const setBalanceHidden = hiddenSlot(balance);
+  const setBalanceTitle = slot((title: string) => {
+    balance.title = title;
+  });
 
   const resources = createResourcesPanel();
   const forest = createForestTab(act);
   const mycelium = createMyceliumTab(act);
+  const fauna = createFaunaTab(act);
   const narrate = createNarrator(journal);
 
   let active: TabId = 'forest';
-  let myceliumOpen = false;
+  const open: Record<TabId, boolean> = { forest: true, mycelium: false, fauna: false };
   const applyTabs = (): void => {
     for (const tab of tabs) {
-      tab.setHidden(tab.id === 'mycelium' && !myceliumOpen);
+      tab.setHidden(!open[tab.id]);
       tab.setActive(tab.id === active);
       tab.setPanelHidden(tab.id !== active);
     }
@@ -41,6 +54,7 @@ export function mountApp(
     [
       { id: 'forest', label: t('tab.forest'), panel: forest.element },
       { id: 'mycelium', label: t('tab.mycelium'), panel: mycelium.element },
+      { id: 'fauna', label: t('tab.fauna'), panel: fauna.element },
     ] as const
   ).map((tab) => {
     const element = button({ className: 'tab', text: tab.label }, [], () => {
@@ -61,6 +75,7 @@ export function mountApp(
     h('header', { className: 'top' }, [
       h('h1', { text: t('game.title') }),
       era,
+      balance,
       date,
       h('span', { className: 'version', text: `v${__APP_VERSION__}` }),
     ]),
@@ -81,7 +96,7 @@ export function mountApp(
     ]),
   );
 
-  return (state) => {
+  const render = (state: GameState): void => {
     const calendar = getCalendar(state.days);
     const currentEra = getEra(state);
     setEra(t('era.label', { numeral: roman(currentEra), name: t(`era.${currentEra}`) }));
@@ -93,8 +108,21 @@ export function mountApp(
       }),
     );
 
-    myceliumOpen = isResourceVisible(state, 'spores');
-    if (!myceliumOpen && active === 'mycelium') {
+    const locale = getLocale();
+    if (isBalanceActive(state)) {
+      const { balance: value, balanceMultiplier } = getProduction(state).modifiers;
+      setBalance(
+        t('balance.label', { value: formatNumber(Math.round(value * 10) / 10, { locale }) }),
+      );
+      setBalanceTitle(
+        t('balance.tooltip', { percent: formatPercent(balanceMultiplier - 1, { locale }) }),
+      );
+    }
+    setBalanceHidden(!isBalanceActive(state));
+
+    open.mycelium = isResourceVisible(state, 'spores');
+    open.fauna = SPECIES_IDS.some((id) => isSpeciesUnlocked(state, id));
+    if (!open[active]) {
       active = 'forest';
     }
     applyTabs();
@@ -103,6 +131,15 @@ export function mountApp(
     resources.render(state);
     forest.render(state);
     mycelium.render(state);
-    narrate(state);
+    fauna.render(state);
+    narrate.observe(state);
+  };
+
+  return {
+    render,
+    replace(state) {
+      narrate.rebase(state);
+      render(state);
+    },
   };
 }

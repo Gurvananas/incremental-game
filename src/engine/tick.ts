@@ -1,9 +1,12 @@
 import { GROWTH_PAUSED_SEASONS } from '../data/climate';
+import { LEAVING_PER_DAY, STARVATION_PER_DAY } from '../data/ecology';
 import type { PlantId } from '../data/plants';
 import { RESOURCE_IDS, type ResourceId } from '../data/resources';
+import { SPECIES, SPECIES_IDS, type SpeciesId } from '../data/species';
 import { SECONDS_PER_DAY } from '../data/time';
 import { getCalendar } from './calendar';
-import { getCaps, getRates } from './production';
+import { getCapacity } from './habitat';
+import { getCaps, getProduction, type Production } from './production';
 import type { GameState, Seedling } from './state';
 
 /** Fixed simulation step, in real seconds (5 ticks per second). */
@@ -13,8 +16,8 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-/** Seedlings grow, except in winter; the ones that reach adulthood join the adults. */
-function grow(state: GameState, days: number): GameState {
+/** Seedlings grow (slower when overgrazed), except in winter; grown ones join the adults. */
+function grow(state: GameState, days: number, grazing: number): GameState {
   if (
     state.seedlings.length === 0 ||
     GROWTH_PAUSED_SEASONS.includes(getCalendar(state.days).season)
@@ -24,7 +27,7 @@ function grow(state: GameState, days: number): GameState {
   const plants = { ...state.plants } as Record<PlantId, number>;
   const seedlings: Seedling[] = [];
   for (const seedling of state.seedlings) {
-    const daysLeft = seedling.daysLeft - days;
+    const daysLeft = seedling.daysLeft - days * grazing;
     if (daysLeft <= 1e-9) {
       plants[seedling.plant] += 1;
     } else {
@@ -34,16 +37,51 @@ function grow(state: GameState, days: number): GameState {
   return { ...state, plants, seedlings };
 }
 
+/**
+ * Populations move toward their niches: fed animals breed (logistic growth) and
+ * newcomers arrive; hungry ones decline; extra ones leave; prey get eaten.
+ */
+function updateAnimals(
+  state: GameState,
+  production: Production,
+  days: number,
+): Record<SpeciesId, number> {
+  const animals = { ...state.animals } as Record<SpeciesId, number>;
+  for (const id of SPECIES_IDS) {
+    const n = state.animals[id];
+    const capacity = getCapacity(state, id);
+    if ((n === 0 && capacity === 0) || production.asleep[id]) {
+      continue;
+    }
+    const def = SPECIES[id];
+    const fed = production.fed[id];
+    const room = Math.max(0, capacity - n);
+    const births = capacity > 0 ? fed * def.birthsPerDay * n * (room / capacity) : 0;
+    const arrivals = fed * def.arrivalsPerDay * room;
+    const starvation = STARVATION_PER_DAY * (1 - fed) * n;
+    const leaving = n > capacity ? LEAVING_PER_DAY * (n - capacity) : 0;
+    const next = n + days * (births + arrivals - starvation - leaving - production.eaten[id]);
+    animals[id] = next < 1e-6 ? 0 : next;
+  }
+  return animals;
+}
+
 /** Advances the game by `dt` real seconds. Pure: returns a new state. */
 export function step(state: GameState, dt: number): GameState {
-  const rates = getRates(state);
+  const production = getProduction(state);
   const caps = getCaps(state);
   const resources = { ...state.resources } as Record<ResourceId, number>;
   for (const id of RESOURCE_IDS) {
-    resources[id] = clamp(resources[id] + rates[id] * dt, 0, caps[id]);
+    resources[id] = clamp(resources[id] + production.rates[id] * dt, 0, caps[id]);
   }
   const days = dt / SECONDS_PER_DAY;
-  return { ...grow(state, days), days: state.days + days, resources };
+  const grown = grow(state, days, production.modifiers.grazing);
+  return {
+    ...grown,
+    days: state.days + days,
+    resources,
+    animals: updateAnimals(state, production, days),
+  };
 }
 
 /**

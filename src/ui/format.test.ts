@@ -17,6 +17,11 @@ describe('formatNumber', () => {
     expect(formatNumber(0.05, fr)).toBe('0,05');
   });
 
+  it('shows float leftovers as zero', () => {
+    expect(formatNumber(2e-18, en)).toBe('0');
+    expect(formatNumber(-1e-9, en)).toBe('0');
+  });
+
   it('uses the decimal comma in French', () => {
     expect(formatNumber(12.5, fr)).toBe('12,5');
   });

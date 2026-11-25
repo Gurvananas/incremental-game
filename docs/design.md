@@ -37,23 +37,23 @@ Sylve est un jeu incrémental textuel : le joueur incarne l'esprit d'une forêt,
 
 Le jeu compte 15 ressources sur trois niveaux. Chaque niveau s'ouvre avec une ère, et chaque ressource a un plafond de stockage qu'il faut agrandir. Au départ, seules l'Eau et la Sève sont visibles.
 
-| Ressource | Niveau      | Produite par                                        | Sert à                                                              | Plafond agrandi par              |
-| --------- | ----------- | --------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------- |
-| Eau       | Brute       | Pluie, rosée sur la mousse                          | Toutes les plantes en consomment                                    | Mousse, Mare forestière          |
-| Sève      | Brute       | Photosynthèse des plantes (Eau × lumière de saison) | Monnaie de base des plantations                                     | Chaque plantation adulte (+5)    |
-| Humus     | Brute       | Vers de terre (Litière → Humus), Lichen             | Planter les grandes essences                                        | Profondeur du sol (adaptations)  |
-| Litière   | Brute       | Feuilles mortes, surtout en automne                 | Nourrit vers et insectes, devient Humus                             | Tapis forestier                  |
-| Bois mort | Brute       | Vieux arbres qui tombent, tempêtes                  | Champignons, insectes, cavités                                      | Se décompose seul : 1 % par jour |
-| Nectar    | Transformée | Fleurs                                              | Nourrit les pollinisateurs                                          | Prairie fleurie                  |
-| Graines   | Transformée | Fleurs pollinisées, arbustes, arbres                | Monnaie des plantations à partir de l'Ère II                        | Souche creuse                    |
-| Baies     | Transformée | Ronces, noisetiers, sureaux                         | Nourrit oiseaux et mammifères, monnaie d'échange                    | Périssable : 2 % par jour        |
-| Insectes  | Transformée | Litière et bois mort                                | Nourrit les insectivores                                            | Population, pas de plafond       |
-| Résine    | Transformée | Pins                                                | Protège des parasites, devient Ambre                                | Pin adulte                       |
-| Spores    | Avancée     | Lichen (un peu), champignons (beaucoup)             | Recherche (équivalent de la science)                                | Réseau mycélien                  |
-| Chants    | Avancée     | Oiseaux                                             | Appels pour attirer de nouvelles espèces (équivalent de la culture) | Arbres à chanteurs               |
-| Lueur     | Avancée     | Lucioles, champignons luminescents, vieux arbres    | Rituels de l'Esprit (équivalent de la foi)                          | Clairière sacrée                 |
-| Ambre     | Avancée     | Résine qui mûrit avec le temps                      | Structures anciennes (équivalent de l'acier)                        | Aucun                            |
-| Cernes    | Avancée     | Arbres vénérables, un par an et par arbre           | Couche du temps (Mémoire)                                           | Aucun                            |
+| Ressource | Niveau      | Produite par                                                 | Sert à                                                                 | Plafond agrandi par                                           |
+| --------- | ----------- | ------------------------------------------------------------ | ---------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Eau       | Brute       | Pluie, rosée sur la mousse                                   | Toutes les plantes en consomment                                       | Mousse, Mare forestière                                       |
+| Sève      | Brute       | Photosynthèse des plantes (Eau × lumière de saison)          | Monnaie de base des plantations                                        | Chaque plantation adulte (+5)                                 |
+| Humus     | Brute       | Vers de terre (Litière → Humus), Lichen                      | Planter les grandes essences                                           | Profondeur du sol (adaptations)                               |
+| Litière   | Brute       | Feuilles mortes, herbes et fleurs fanées, surtout en automne | Nourrit vers et insectes, devient Humus                                | Tapis forestier (base 100)                                    |
+| Bois mort | Brute       | Vieux arbres qui tombent, tempêtes                           | Champignons, insectes, cavités                                         | Se décompose seul : 1 % par jour                              |
+| Nectar    | Transformée | Fleurs                                                       | Nourrit les pollinisateurs                                             | Prairie fleurie                                               |
+| Graines   | Transformée | Fleurs pollinisées, noisetiers, arbres                       | Monnaie des plantations à partir de l'Ère II                           | Fleurs (+10), Noisetier (+50), Dispersion (×2), Souche creuse |
+| Baies     | Transformée | Ronces, noisetiers, sureaux (été, automne)                   | Nourrit mésanges et renards quand leur nourriture principale manque    | Périssable : 2 % par jour                                     |
+| Insectes  | Transformée | Fleurs et ronces, puis litière et bois mort                  | Nourrit les insectivores ; trop nombreux, ils deviennent des ravageurs | Fleurs (+5), Ronces (+20)                                     |
+| Résine    | Transformée | Pins                                                         | Protège des parasites, devient Ambre                                   | Pin adulte                                                    |
+| Spores    | Avancée     | Lichen (un peu), champignons (beaucoup)                      | Recherche (équivalent de la science)                                   | Réseau mycélien                                               |
+| Chants    | Avancée     | Oiseaux                                                      | Appels pour attirer de nouvelles espèces (équivalent de la culture)    | Arbres à chanteurs                                            |
+| Lueur     | Avancée     | Lucioles, champignons luminescents, vieux arbres             | Rituels de l'Esprit (équivalent de la foi)                             | Clairière sacrée                                              |
+| Ambre     | Avancée     | Résine qui mûrit avec le temps                               | Structures anciennes (équivalent de l'acier)                           | Aucun                                                         |
+| Cernes    | Avancée     | Arbres vénérables, un par an et par arbre                    | Couche du temps (Mémoire)                                              | Aucun                                                         |
 
 Les conversions manuelles reprennent l'artisanat de Kittens Game. Par exemple, le joueur peut « composter » 100 Litière en 1 Humus avant que les vers de terre ne le fassent seuls.
 
@@ -94,23 +94,23 @@ Les animaux remplacent les chatons. Les plantations créent des niches d'habitat
 
 **Espèces du premier jeu (15)**
 
-| Espèce           | Ère | Niche            | Mange             | Rôle                                                         |
-| ---------------- | --- | ---------------- | ----------------- | ------------------------------------------------------------ |
-| Ver de terre     | I   | Sol              | Litière           | Transforme la Litière en Humus                               |
-| Fourmi           | I   | Sol              | Nectar            | Disperse les graines de fleurs, aère le sol (+plafond d'Eau) |
-| Abeille sauvage  | II  | Fleur            | Nectar            | Pollinise : multiplie la production de Graines               |
-| Papillon         | II  | Fleur            | Nectar            | Pollinisation légère, compte double dans l'Équilibre         |
-| Mésange          | III | Fourré ou Cavité | Insectes          | Produit des Chants, limite les parasites                     |
-| Hérisson         | III | Abri au sol      | Insectes          | Limite les parasites, hiberne l'hiver                        |
-| Lapin            | III | Herbe            | Sève des herbes   | Proie ; surpâturage s'il est trop nombreux                   |
-| Renard           | III | Terrier          | Lapins            | Régule les herbivores                                        |
-| Pic épeiche      | IV  | Bois mort        | Insectes          | Crée de nouvelles Cavités, combat les scolytes               |
-| Écureuil         | IV  | Cavité           | Graines           | Enterre des réserves : une part germe seule                  |
-| Geai des chênes  | IV  | Branche          | Graines           | Plante des chênes gratuits, ouvre l'expansion du territoire  |
-| Chevreuil        | IV  | Clairière        | Jeunes pousses    | Garde les clairières ouvertes, mais mange les semis          |
-| Luciole          | V   | Litière humide   | Rien              | Produit de la Lueur en été                                   |
-| Chouette hulotte | V   | Cavité           | Petits mammifères | Régule les rongeurs, produit Chants et Lueur                 |
-| Loup             | V   | Territoire       | Chevreuils        | Cascade trophique : gros bonus d'Équilibre                   |
+| Espèce           | Ère | Niche            | Mange             | Rôle                                                                              |
+| ---------------- | --- | ---------------- | ----------------- | --------------------------------------------------------------------------------- |
+| Ver de terre     | I   | Sol              | Litière           | Transforme la Litière en Humus                                                    |
+| Fourmi           | II  | Sol              | Nectar            | Disperse les graines de fleurs (+2 % de Graines), aère le sol (+10 plafond d'Eau) |
+| Abeille sauvage  | II  | Fleur            | Nectar            | Pollinise : multiplie la production de Graines                                    |
+| Papillon         | II  | Fleur            | Nectar            | Pollinisation légère, compte double dans l'Équilibre                              |
+| Mésange          | III | Fourré ou Cavité | Insectes          | Produit des Chants, limite les parasites                                          |
+| Hérisson         | III | Abri au sol      | Insectes          | Limite les parasites, hiberne l'hiver                                             |
+| Lapin            | III | Herbe            | Sève des herbes   | Proie ; surpâturage s'il est trop nombreux                                        |
+| Renard           | III | Terrier          | Lapins            | Régule les herbivores                                                             |
+| Pic épeiche      | IV  | Bois mort        | Insectes          | Crée de nouvelles Cavités, combat les scolytes                                    |
+| Écureuil         | IV  | Cavité           | Graines           | Enterre des réserves : une part germe seule                                       |
+| Geai des chênes  | IV  | Branche          | Graines           | Plante des chênes gratuits, ouvre l'expansion du territoire                       |
+| Chevreuil        | IV  | Clairière        | Jeunes pousses    | Garde les clairières ouvertes, mais mange les semis                               |
+| Luciole          | V   | Litière humide   | Rien              | Produit de la Lueur en été                                                        |
+| Chouette hulotte | V   | Cavité           | Petits mammifères | Régule les rongeurs, produit Chants et Lueur                                      |
+| Loup             | V   | Territoire       | Chevreuils        | Cascade trophique : gros bonus d'Équilibre                                        |
 
 Cerf, chauve-souris et lynx sont gardés pour les versions suivantes.
 
@@ -122,29 +122,44 @@ Les bâtiments sont des plantations. Leur prix est multiplié par 1,15 à chaque
 
 **Canopée.** Les couronnes des arbres couvrent le sol. La canopée est la part du terrain couverte, plafonnée à 95 %. Herbes et fleurs produisent × (1 − canopée) ; mousses et champignons × (0,3 + canopée). Fermer la forêt étouffe donc la prairie qui l'a fait naître : c'est le principal arbitrage du milieu de partie.
 
-| Plantation       | Ère | Coût de base                | Effet (adulte)                                             | Temps jusqu'à l'âge adulte | Niches                      |
-| ---------------- | --- | --------------------------- | ---------------------------------------------------------- | -------------------------- | --------------------------- |
-| Herbes folles    | I   | 10 Sève                     | +0,2 Sève/s, boit 0,05 Eau/s                               | 10 jours                   | 1 Herbe                     |
-| Mousse           | I   | 15 Sève                     | +50 plafond d'Eau, +0,02 Eau/s (rosée)                     | Immédiat                   | —                           |
-| Lichen           | I   | 25 Sève                     | +0,01 Humus/s, +0,012 Spores/s (réglé au simulateur)       | Immédiat                   | —                           |
-| Trèfle           | I   | 40 Sève, 5 Humus            | +5 % de Sève pour toutes les plantes (azote)               | 20 jours                   | 1 Sol                       |
-| Fleurs sauvages  | II  | 60 Sève, 10 Graines         | +0,1 Nectar/s, +0,02 Graines/s                             | 1 saison                   | 2 Fleur                     |
-| Mare forestière  | II  | 100 Humus, 50 Graines       | +500 plafond d'Eau                                         | Immédiat                   | 1 Litière humide            |
-| Ronces           | III | 80 Graines, 20 Humus        | +0,05 Baies/s, protègent les semis voisins                 | 1 saison                   | 1 Fourré, 1 Abri au sol     |
-| Talus            | III | 100 Humus                   | +200 plafond d'Humus                                       | Immédiat                   | 2 Terrier                   |
-| Noisetier        | III | 150 Graines, 50 Humus       | +0,08 Baies/s, +0,03 Graines/s                             | 2 saisons                  | 2 Fourré                    |
-| Bouleau          | IV  | 300 Graines, 100 Humus      | +0,3 Sève/s, Litière, couronne 1                           | 2 saisons                  | 1 Branche                   |
-| Pin              | IV  | 400 Graines, 80 Humus       | +0,05 Résine/s, couronne 1,5, litière acide (−5 % d'Humus) | 3 saisons                  | 1 Branche                   |
-| Champignons      | IV  | 20 Bois mort, 50 Humus      | +0,1 Spores/s, multiplié par l'ombre                       | Immédiat                   | —                           |
-| Souche creuse    | IV  | 30 Bois mort                | +200 plafond de Graines                                    | Immédiat                   | 1 Cavité                    |
-| Tas de bois mort | IV  | 40 Bois mort                | +0,05 Insectes/s                                           | Immédiat                   | 1 Abri au sol, 1 Bois mort  |
-| Chêne            | V   | 1 500 Graines, 400 Humus    | +1 Sève/s, beaucoup de Litière, couronne 4                 | 3 ans                      | 2 Branche, 2 Cavité (vieux) |
-| Hêtre            | V   | 1 200 Graines, 500 Humus    | Couronne 5 (ombre forte), +10 % de Spores                  | 2 ans                      | 1 Branche                   |
-| Arbre-mère       | V   | Un vieux chêne + 200 Spores | +2 % à chaque arbre relié par le mycélium, +Lueur          | Immédiat (prix × 1,25)     | —                           |
-| Clairière sacrée | VI  | 500 Lueur, 200 Ambre        | +plafond de Lueur, ouvre les rituels avancés               | Immédiat                   | 1 Clairière                 |
-| Vénérable        | VI  | Un chêne de 10 ans          | +1 Cerne par an, +Lueur                                    | Immédiat                   | 3 Cavité                    |
+| Plantation       | Ère | Coût de base                | Effet (adulte)                                                                       | Temps jusqu'à l'âge adulte | Niches                      |
+| ---------------- | --- | --------------------------- | ------------------------------------------------------------------------------------ | -------------------------- | --------------------------- |
+| Herbes folles    | I   | 10 Sève                     | +0,2 Sève/s, boit 0,05 Eau/s                                                         | 10 jours                   | 1 Herbe                     |
+| Mousse           | I   | 15 Sève                     | +50 plafond d'Eau, +0,05 Eau/s (rosée)                                               | Immédiat                   | —                           |
+| Lichen           | I   | 25 Sève                     | +0,01 Humus/s, +0,012 Spores/s, +20 stockage de Spores                               | Immédiat                   | —                           |
+| Trèfle           | I   | 40 Sève, 5 Humus            | +5 % de Sève pour toutes les plantes (azote)                                         | 20 jours                   | 1 Sol                       |
+| Fleurs sauvages  | II  | 60 Sève, 10 Graines         | +0,1 Nectar/s, +0,02 Graines/s                                                       | 1 saison                   | 2 Fleur                     |
+| Mare forestière  | II  | 100 Humus, 50 Graines       | +500 plafond d'Eau, +0,2 Eau/s (ruissellement)                                       | Immédiat                   | —                           |
+| Ronces           | III | 80 Graines, 20 Humus        | +0,05 Baies/s, protègent les semis voisins                                           | 1 saison                   | 1 Fourré, 1 Abri au sol     |
+| Talus            | III | 100 Humus                   | +200 plafond d'Humus                                                                 | Immédiat                   | 2 Terrier                   |
+| Noisetier        | III | 150 Graines, 50 Humus       | +0,08 Baies/s, +0,03 Graines/s, +0,025 Spores/s, +40 stockage de Spores (mycorhizes) | 2 saisons                  | 2 Fourré                    |
+| Bouleau          | IV  | 300 Graines, 100 Humus      | +0,3 Sève/s, Litière, couronne 1                                                     | 2 saisons                  | 1 Branche                   |
+| Pin              | IV  | 400 Graines, 80 Humus       | +0,05 Résine/s, couronne 1,5, litière acide (−5 % d'Humus)                           | 3 saisons                  | 1 Branche                   |
+| Champignons      | IV  | 20 Bois mort, 50 Humus      | +0,1 Spores/s, multiplié par l'ombre                                                 | Immédiat                   | —                           |
+| Souche creuse    | IV  | 30 Bois mort                | +200 plafond de Graines                                                              | Immédiat                   | 1 Cavité                    |
+| Tas de bois mort | IV  | 40 Bois mort                | +0,05 Insectes/s                                                                     | Immédiat                   | 1 Abri au sol, 1 Bois mort  |
+| Chêne            | V   | 1 500 Graines, 400 Humus    | +1 Sève/s, beaucoup de Litière, couronne 4                                           | 3 ans                      | 2 Branche, 2 Cavité (vieux) |
+| Hêtre            | V   | 1 200 Graines, 500 Humus    | Couronne 5 (ombre forte), +10 % de Spores                                            | 2 ans                      | 1 Branche                   |
+| Arbre-mère       | V   | Un vieux chêne + 200 Spores | +2 % à chaque arbre relié par le mycélium, +Lueur                                    | Immédiat (prix × 1,25)     | —                           |
+| Clairière sacrée | VI  | 500 Lueur, 200 Ambre        | +plafond de Lueur, ouvre les rituels avancés                                         | Immédiat                   | 1 Clairière                 |
+| Vénérable        | VI  | Un chêne de 10 ans          | +1 Cerne par an, +Lueur                                                              | Immédiat                   | 3 Cavité                    |
 
 Un jour de jeu dure 2 secondes : « 10 jours » font 20 secondes et « 3 ans » environ 40 minutes. Les chiffres sont des valeurs de départ à régler au simulateur.
+
+**Règles précisées en v0.2 (faune et Ères II–III)**
+
+- **Arrivées et croissance.** Une espèce débloquée vient dans les niches qu'on lui donne : chaque jour, de nouveaux individus remplissent 2 % de la place libre (1 à 3 % selon l'espèce), puis la population nourrie grandit vers ses niches (croissance logistique). Elle ne dépasse jamais ses niches.
+- **Faim.** Une espèce qui manque de nourriture perd jusqu'à 2 % par jour, en proportion de ce qui manque. Mésange et Renard ont une nourriture de secours (Baies) qui couvre ce que la première ne couvre pas.
+- **Niches reprises.** Les individus en trop partent à 3 % de l'excédent par jour : il faut environ une saison pour qu'une niche change vraiment d'espèce.
+- **Prédation.** Chaque Renard mange 0,05 Lapin par jour, sans jamais prendre plus de 10 % des lapins par jour.
+- **Hibernation.** Abeilles, papillons et hérissons dorment l'hiver : ils ne mangent pas, ne produisent pas et ne se reproduisent pas.
+- **Appels.** 25 Chants font venir jusqu'à 5 individus d'un coup dans des niches libres déjà attribuées.
+- **Pollinisation.** Chaque abeille nourrie ajoute +5 % aux Graines produites par les plantes, chaque papillon et chaque fourmi +2 %.
+- **Équilibre.** Il compte à partir de la Chaîne alimentaire. Poids des plantes (biomasse par plante adulte) : Mousse 0,05, Lichen 0,02, Herbes et Trèfle 0,1, Fleurs 0,2, Ronces 1, Noisetier 3. Un animal compte dès qu'il y a au moins un individu ; le papillon compte double.
+- **Surpâturage.** Quand les brouteurs (lapins) occupent plus de 75 % des niches d'Herbe, les semis poussent jusqu'à 2 fois moins vite ; chaque Ronce en protège 5 %.
+- **Ravageurs.** Au-delà de la moitié du stockage d'Insectes, la Sève baisse, jusqu'à −20 % quand le stockage est plein. Mésanges et hérissons les tiennent en respect.
+- **Saisons.** Litière ×0,5 / 0,5 / 3 / 0,5, Nectar ×1,5 / 1 / 0,25 / 0, Graines ×1 / 1 / 2 / 0, Baies ×0 / 1 / 2 / 0 (printemps, été, automne, hiver).
+- **Stockage de départ** : Humus 150 (au lieu de 50), Litière, Graines, Baies, Insectes et Chants 100, Nectar 50.
 
 **Règles précisées en v0.1**
 
@@ -162,27 +177,27 @@ Les premières Spores viennent du Lichen, qui est l'association d'un champignon 
 
 **Découvertes**
 
-| Découverte         | Ère | Coût (Spores) | Prérequis                     | Débloque                                             |
-| ------------------ | --- | ------------- | ----------------------------- | ---------------------------------------------------- |
-| Symbiose           | I   | 10            | —                             | Trèfle, Ver de terre, onglet Faune                   |
-| Enracinement       | I   | 25            | Symbiose                      | Plafond de Sève × 2, Fourmi                          |
-| Floraison          | I   | 60            | Enracinement                  | **Ère II** : Fleurs sauvages, Nectar, Graines        |
-| Pollinisation      | II  | 150           | Floraison                     | Abeille sauvage, Papillon                            |
-| Dispersion         | II  | 250           | Pollinisation                 | Mare forestière, Appels (Chants)                     |
-| Fructification     | II  | 400           | Dispersion                    | **Ère III** : Ronces, Noisetier, Baies               |
-| Chaîne alimentaire | III | 700           | Fructification                | Mésange, Hérisson, Lapin, indice d'Équilibre visible |
-| Prédation          | III | 1 200         | Chaîne alimentaire            | Talus, Renard                                        |
-| Lignification      | III | 2 000         | Fructification                | **Ère IV** : Bouleau, Pin, onglet Adaptations        |
-| Décomposition      | IV  | 3 500         | Lignification                 | Champignons, Bois mort, Pic épeiche                  |
-| Mycorhizes         | IV  | 6 000         | Décomposition                 | Les arbres partagent leur Sève ; Spores × 2          |
-| Migration          | IV  | 5 000         | Lignification                 | Onglet Échanges, Geai, Écureuil                      |
-| Canopée            | IV  | 9 000         | Lignification                 | **Ère V** : Chêne, Hêtre, Chevreuil                  |
-| Arbres-mères       | V   | 15 000        | Mycorhizes, Canopée           | Arbre-mère                                           |
-| Cascade trophique  | V   | 25 000        | Prédation, Canopée            | Chouette hulotte, Loup                               |
-| Bioluminescence    | V   | 30 000        | Mycorhizes                    | Luciole, Lueur, onglet Esprit                        |
-| Mémoire des cernes | V   | 60 000        | Arbres-mères                  | **Ère VI** : Cernes, Ambre, onglet Mémoire           |
-| Essaimage          | VI  | 80 000        | Migration, Mémoire des cernes | Onglet Territoire (biomes voisins)                   |
-| Pyrophytie         | VI  | 150 000       | Mémoire des cernes            | L'Incendie volontaire (prestige)                     |
+| Découverte         | Ère | Coût (Spores) | Prérequis                     | Débloque                                                              |
+| ------------------ | --- | ------------- | ----------------------------- | --------------------------------------------------------------------- |
+| Symbiose           | I   | 10            | —                             | Trèfle, Ver de terre, onglet Faune                                    |
+| Enracinement       | I   | 25            | Symbiose                      | Plafond de Sève × 2                                                   |
+| Floraison          | I   | 60            | Enracinement                  | **Ère II** : Fleurs sauvages, Nectar, Graines (+25 d'un coup), Fourmi |
+| Pollinisation      | II  | 150           | Floraison                     | Abeille sauvage, Papillon                                             |
+| Dispersion         | II  | 250           | Pollinisation                 | Mare forestière, stockage de Graines et de Spores × 2                 |
+| Fructification     | II  | 400           | Dispersion                    | **Ère III** : Ronces, Noisetier, Baies                                |
+| Chaîne alimentaire | III | 700           | Fructification                | Mésange, Hérisson, Lapin, Équilibre (compte à partir d'ici), Appels   |
+| Prédation          | III | 1 200         | Chaîne alimentaire            | Talus, Renard                                                         |
+| Lignification      | III | 2 000         | Fructification                | **Ère IV** : Bouleau, Pin, onglet Adaptations                         |
+| Décomposition      | IV  | 3 500         | Lignification                 | Champignons, Bois mort, Pic épeiche                                   |
+| Mycorhizes         | IV  | 6 000         | Décomposition                 | Les arbres partagent leur Sève ; Spores × 2                           |
+| Migration          | IV  | 5 000         | Lignification                 | Onglet Échanges, Geai, Écureuil                                       |
+| Canopée            | IV  | 9 000         | Lignification                 | **Ère V** : Chêne, Hêtre, Chevreuil                                   |
+| Arbres-mères       | V   | 15 000        | Mycorhizes, Canopée           | Arbre-mère                                                            |
+| Cascade trophique  | V   | 25 000        | Prédation, Canopée            | Chouette hulotte, Loup                                                |
+| Bioluminescence    | V   | 30 000        | Mycorhizes                    | Luciole, Lueur, onglet Esprit                                         |
+| Mémoire des cernes | V   | 60 000        | Arbres-mères                  | **Ère VI** : Cernes, Ambre, onglet Mémoire                            |
+| Essaimage          | VI  | 80 000        | Migration, Mémoire des cernes | Onglet Territoire (biomes voisins)                                    |
+| Pyrophytie         | VI  | 150 000       | Mémoire des cernes            | L'Incendie volontaire (prestige)                                      |
 
 **Exemples d'Adaptations**
 
@@ -418,7 +433,7 @@ La première version jouable couvre l'Ère I en 15 minutes de jeu. Le prestige a
 
 1. **v0.0 — Le socle.** Outillage, moteur pur, sauvegarde versionnée, boucle temps réel, hors ligne, debug, CI. _Fait._
 2. **v0.1 — Le noyau.** Ressources et plafonds, plantations à prix croissant, Murmurer, saisons, premières Découvertes. Terminée quand on joue 15 minutes jusqu'à la Floraison. _Fait : le joueur simulé l'atteint en 15 min 02._
-3. **v0.2 — La prairie et la faune.** Mycélium, Fleurs et Graines, niches et espèces, nourriture, Équilibre. Ères II et III. Terminée quand on joue 3 heures sans blocage et que le simulateur tourne.
+3. **v0.2 — La prairie et la faune.** Mycélium, Fleurs et Graines, niches et espèces, nourriture, Équilibre. Ères II et III. Terminée quand on joue 3 heures sans blocage et que le simulateur tourne. _Fait : Ère II à 15 min, Ère III à 1 h 12, Ère IV à 2 h 50, jamais plus de 4 min 20 sans achat._
 4. **v0.3 — La forêt.** Stades de croissance, canopée, bois mort, champignons, adaptations, météo et menaces. Ère IV.
 5. **v0.4 — Le feu.** L'essentiel des Ères V et VI, Incendie, Cendre, Graines dormantes. Terminée quand une boucle complète de prestige fonctionne.
 6. **v0.5 — Les couches profondes.** Échanges, Esprit, Mémoire, Territoire, Épreuves.

@@ -45,8 +45,12 @@ export function formatNumber(value: number, { locale, notation = 'short' }: Form
   if (!Number.isFinite(value)) {
     return value > 0 ? '∞' : '-∞';
   }
-  const sign = value < 0 ? '-' : '';
   const abs = Math.abs(value);
+  // Float leftovers such as 2e-18 are zero to the player.
+  if (abs < 0.001) {
+    return '0';
+  }
+  const sign = value < 0 ? '-' : '';
   if (abs < 1000) {
     return sign + plain(abs, locale);
   }

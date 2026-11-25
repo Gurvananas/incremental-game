@@ -2,6 +2,7 @@ import type { DiscoveryId } from '../src/data/discoveries';
 import type { Era } from '../src/data/eras';
 import { PLANT_IDS } from '../src/data/plants';
 import { RESOURCE_IDS } from '../src/data/resources';
+import { SPECIES_IDS, type SpeciesId } from '../src/data/species';
 import { getCalendar, type CalendarDate } from '../src/engine/calendar';
 import { getCaps } from '../src/engine/production';
 import { createInitialState, type GameState } from '../src/engine/state';
@@ -21,6 +22,12 @@ export interface Milestones {
   readonly firstPlant?: number;
   readonly discoveries: Partial<Record<DiscoveryId, number>>;
   readonly eras: Partial<Record<Era, number>>;
+  /** First second at which each species had at least one individual. */
+  readonly species: Partial<Record<SpeciesId, number>>;
+  /** Longest stretch, in real seconds, without buying anything. */
+  readonly longestWait: number;
+  /** When that longest stretch started. */
+  readonly longestWaitFrom: number;
 }
 
 export interface Sample {
@@ -67,12 +74,29 @@ export function runSimulation({
   let firstPlant: number | undefined;
   const discoveries: Partial<Record<DiscoveryId, number>> = {};
   const eras: Partial<Record<Era, number>> = { 1: 0 };
+  const species: Partial<Record<SpeciesId, number>> = {};
+  let lastPurchase = 0;
+  let longestWait = 0;
+  let longestWaitFrom = 0;
   const samples: Sample[] = [{ second: 0, date: getCalendar(0), state }];
   const violations: string[] = [];
   let lastSeason = getCalendar(0).season;
 
   for (let second = 0; second < seconds; second++) {
-    state = botTurn(state, second, profile);
+    const turn = botTurn(state, second, profile);
+    state = turn.state;
+    if (turn.bought) {
+      if (second - lastPurchase > longestWait) {
+        longestWait = second - lastPurchase;
+        longestWaitFrom = lastPurchase;
+      }
+      lastPurchase = second;
+    }
+    for (const id of SPECIES_IDS) {
+      if (state.animals[id] >= 1) {
+        species[id] ??= second;
+      }
+    }
     if (firstPlant === undefined && PLANT_IDS.some((id) => ownedCount(state, id) > 0)) {
       firstPlant = second;
     }
@@ -90,7 +114,7 @@ export function runSimulation({
     }
   }
 
-  const milestones: Milestones =
-    firstPlant === undefined ? { discoveries, eras } : { firstPlant, discoveries, eras };
+  const rest = { discoveries, eras, species, longestWait, longestWaitFrom };
+  const milestones: Milestones = firstPlant === undefined ? rest : { firstPlant, ...rest };
   return { final: state, milestones, samples, violations };
 }

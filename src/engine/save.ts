@@ -1,7 +1,8 @@
 import { DISCOVERY_IDS, type DiscoveryId } from '../data/discoveries';
 import { PLANT_IDS, type PlantId } from '../data/plants';
 import { RESOURCE_IDS } from '../data/resources';
-import { initialResources, noPlants, type GameState, type Seedling } from './state';
+import { SPECIES_IDS, type SpeciesId } from '../data/species';
+import { initialResources, noAnimals, noPlants, type GameState, type Seedling } from './state';
 
 /**
  * Save format version. Bump it, and add a migration below, whenever the
@@ -66,6 +67,19 @@ function hydratePlants(raw: unknown): Record<PlantId, number> {
     }
   }
   return plants;
+}
+
+function hydrateSpecies(raw: unknown, wholeNumbers: boolean): Record<SpeciesId, number> {
+  const counts = noAnimals();
+  if (isRecord(raw)) {
+    for (const id of SPECIES_IDS) {
+      const count = raw[id];
+      if (isNonNegativeNumber(count) && (!wholeNumbers || Number.isInteger(count))) {
+        counts[id] = count;
+      }
+    }
+  }
+  return counts;
 }
 
 function hydrateSeedlings(raw: unknown): Seedling[] {
@@ -142,6 +156,8 @@ function hydrate(raw: unknown): GameState {
     plants: hydratePlants(raw.plants),
     seedlings: hydrateSeedlings(raw.seedlings),
     discoveries: hydrateDiscoveries(raw.discoveries),
+    animals: hydrateSpecies(raw.animals, false),
+    assignments: hydrateSpecies(raw.assignments, true),
     rng: raw.rng >>> 0,
   };
 }
