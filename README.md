@@ -6,7 +6,7 @@ food web, then let it burn and grow back stronger.
 Un jeu incrémental sur une forêt : faire pousser une friche jusqu'à la forêt ancienne, équilibrer
 un réseau vivant, puis la laisser brûler pour renaître plus forte.
 
-**Status:** foundation only (v0.0). Time, seasons, rain, saving and offline progress work; gameplay starts with v0.1.
+**Status:** v0.1. Era I is playable: murmur, plant grass, moss, lichen and clover, research the first discoveries, and reach Flowering in about 15 minutes.
 
 ## Develop
 

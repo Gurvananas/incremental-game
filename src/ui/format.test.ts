@@ -11,6 +11,12 @@ describe('formatNumber', () => {
     expect(formatNumber(999.99, en)).toBe('999.99');
   });
 
+  it('keeps two significant digits below 1, so small rates stay readable', () => {
+    expect(formatNumber(0.012, en)).toBe('0.012');
+    expect(formatNumber(0.625, en)).toBe('0.63');
+    expect(formatNumber(0.05, fr)).toBe('0,05');
+  });
+
   it('uses the decimal comma in French', () => {
     expect(formatNumber(12.5, fr)).toBe('12,5');
   });

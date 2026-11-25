@@ -53,7 +53,41 @@ describe('serialize / deserialize', () => {
       state: { days: 3, rng: 9, resources: { water: -5, oldResource: 12 } },
     });
     const { state } = deserialize(text);
-    expect(state.resources).toEqual({ water: RESOURCES.water.initial, sap: RESOURCES.sap.initial });
+    expect(state.resources.water).toBe(RESOURCES.water.initial);
+    expect(state.resources).not.toHaveProperty('oldResource');
+  });
+
+  it('loads a v0.0 save, which had no plants, seedlings or discoveries', () => {
+    const text = JSON.stringify({
+      version: 1,
+      savedAt: 0,
+      state: { days: 12, rng: 3, resources: { water: 80, sap: 0 } },
+    });
+    const { state } = deserialize(text);
+    expect(state).toEqual({
+      ...createInitialState(3),
+      days: 12,
+      resources: { ...state.resources, water: 80 },
+    });
+    expect(state.plants.grass).toBe(0);
+  });
+
+  it('drops invalid plants, seedlings and discoveries', () => {
+    const text = JSON.stringify({
+      version: SAVE_VERSION,
+      savedAt: 0,
+      state: {
+        days: 0,
+        rng: 1,
+        plants: { grass: 2.5, moss: 3, oak: 9 },
+        seedlings: [{ plant: 'grass', daysLeft: 4 }, { plant: 'oak', daysLeft: 1 }, 'junk'],
+        discoveries: ['symbiosis', 'symbiosis', 'telepathy'],
+      },
+    });
+    const { state } = deserialize(text);
+    expect(state.plants).toEqual({ grass: 0, moss: 3, lichen: 0, clover: 0 });
+    expect(state.seedlings).toEqual([{ plant: 'grass', daysLeft: 4 }]);
+    expect(state.discoveries).toEqual(['symbiosis']);
   });
 });
 

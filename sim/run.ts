@@ -1,7 +1,10 @@
+import { DISCOVERY_IDS } from '../src/data/discoveries';
+import { ERAS } from '../src/data/eras';
+import { PLANT_IDS } from '../src/data/plants';
 import { RESOURCE_IDS } from '../src/data/resources';
 import { runSimulation } from './simulate';
 
-/** Usage: npm run sim -- --days=800 --seed=42 */
+/** Usage: npm run sim -- --minutes=60 --seed=42 */
 function numberArg(name: string, fallback: number): number {
   const prefix = `--${name}=`;
   const raw = process.argv.find((arg) => arg.startsWith(prefix))?.slice(prefix.length);
@@ -12,15 +15,37 @@ function numberArg(name: string, fallback: number): number {
   return value;
 }
 
-const days = numberArg('days', 800);
-const seed = numberArg('seed', 1);
-const report = runSimulation({ seed, days });
+function clock(seconds: number | undefined): string {
+  if (seconds === undefined) {
+    return 'not reached';
+  }
+  const m = Math.floor(seconds / 60);
+  const s = String(seconds % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
 
-console.log(`Sylve simulation: ${days} days, seed ${seed}`);
+const minutes = numberArg('minutes', 30);
+const seed = numberArg('seed', 1);
+const report = runSimulation({ seed, seconds: minutes * 60 });
+const { milestones } = report;
+
+console.log(`Sylve simulation: ${minutes} min, seed ${seed}\n`);
+console.log('Milestones (real time, m:ss)');
+console.log(`  first plantation   ${clock(milestones.firstPlant)}`);
+for (const id of DISCOVERY_IDS) {
+  console.log(`  ${id.padEnd(18)} ${clock(milestones.discoveries[id])}`);
+}
+for (const era of ERAS.filter((e) => e > 1)) {
+  console.log(`  era ${String(era).padEnd(14)} ${clock(milestones.eras[era])}`);
+}
+
+console.log('\nStart of each season');
 console.table(
-  report.samples.map(({ date, resources }) => ({
+  report.samples.map(({ second, date, state }) => ({
+    time: clock(second),
     date: `Y${date.year} ${date.season}`,
-    ...Object.fromEntries(RESOURCE_IDS.map((id) => [id, resources[id].toFixed(2)])),
+    ...Object.fromEntries(RESOURCE_IDS.map((id) => [id, state.resources[id].toFixed(1)])),
+    ...Object.fromEntries(PLANT_IDS.map((id) => [id, state.plants[id]])),
   })),
 );
 

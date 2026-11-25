@@ -50,7 +50,14 @@ if (root === null) {
   throw new Error('Missing #app element');
 }
 
-const render = mountApp(root, journal);
+const render = mountApp(root, journal, (update) => {
+  const next = update(state);
+  if (next !== state) {
+    state = next;
+    save();
+    render(state);
+  }
+});
 const save = (): void => writeSave(state, Date.now());
 
 if (import.meta.env.DEV || params.has('debug')) {

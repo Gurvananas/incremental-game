@@ -40,7 +40,7 @@ Le jeu compte 15 ressources sur trois niveaux. Chaque niveau s'ouvre avec une è
 | Ressource | Niveau      | Produite par                                        | Sert à                                                              | Plafond agrandi par              |
 | --------- | ----------- | --------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------- |
 | Eau       | Brute       | Pluie, rosée sur la mousse                          | Toutes les plantes en consomment                                    | Mousse, Mare forestière          |
-| Sève      | Brute       | Photosynthèse des plantes (Eau × lumière de saison) | Monnaie de base des plantations                                     | Chaque plantation adulte         |
+| Sève      | Brute       | Photosynthèse des plantes (Eau × lumière de saison) | Monnaie de base des plantations                                     | Chaque plantation adulte (+5)    |
 | Humus     | Brute       | Vers de terre (Litière → Humus), Lichen             | Planter les grandes essences                                        | Profondeur du sol (adaptations)  |
 | Litière   | Brute       | Feuilles mortes, surtout en automne                 | Nourrit vers et insectes, devient Humus                             | Tapis forestier                  |
 | Bois mort | Brute       | Vieux arbres qui tombent, tempêtes                  | Champignons, insectes, cavités                                      | Se décompose seul : 1 % par jour |
@@ -126,7 +126,7 @@ Les bâtiments sont des plantations. Leur prix est multiplié par 1,15 à chaque
 | ---------------- | --- | --------------------------- | ---------------------------------------------------------- | -------------------------- | --------------------------- |
 | Herbes folles    | I   | 10 Sève                     | +0,2 Sève/s, boit 0,05 Eau/s                               | 10 jours                   | 1 Herbe                     |
 | Mousse           | I   | 15 Sève                     | +50 plafond d'Eau, +0,02 Eau/s (rosée)                     | Immédiat                   | —                           |
-| Lichen           | I   | 25 Sève                     | +0,01 Humus/s, +0,005 Spores/s                             | Immédiat                   | —                           |
+| Lichen           | I   | 25 Sève                     | +0,01 Humus/s, +0,012 Spores/s (réglé au simulateur)       | Immédiat                   | —                           |
 | Trèfle           | I   | 40 Sève, 5 Humus            | +5 % de Sève pour toutes les plantes (azote)               | 20 jours                   | 1 Sol                       |
 | Fleurs sauvages  | II  | 60 Sève, 10 Graines         | +0,1 Nectar/s, +0,02 Graines/s                             | 1 saison                   | 2 Fleur                     |
 | Mare forestière  | II  | 100 Humus, 50 Graines       | +500 plafond d'Eau                                         | Immédiat                   | 1 Litière humide            |
@@ -145,6 +145,14 @@ Les bâtiments sont des plantations. Leur prix est multiplié par 1,15 à chaque
 | Vénérable        | VI  | Un chêne de 10 ans          | +1 Cerne par an, +Lueur                                    | Immédiat                   | 3 Cavité                    |
 
 Un jour de jeu dure 2 secondes : « 10 jours » font 20 secondes et « 3 ans » environ 40 minutes. Les chiffres sont des valeurs de départ à régler au simulateur.
+
+**Règles précisées en v0.1**
+
+- **Murmurer** donne +1 Sève par clic. C'est la seule source de Sève avant la première plante, donc ce qui lance la partie ; il devient vite négligeable. Piste à creuser : une capacité de l'Esprit pourrait le rendre utile plus tard.
+- **Ordre d'apparition** : Herbes folles dès le départ, Mousse après 1 Herbes folles, Lichen après 2, Trèfle avec la Symbiose. Une ressource apparaît dès qu'elle existe ou qu'une plantation la produit.
+- **Stockage de départ** : Eau 100, Sève 50, Humus 50, Spores 100. Chaque plantation adulte ajoute +5 de stockage de Sève.
+- **Eau** : les plantes qui boivent (semis compris) ne produisent qu'au prorata de l'eau disponible quand le stock est vide. Le Lichen ne boit pas et travaille même l'hiver.
+- **Saisons** : seule la Sève suit les multiplicateurs de saison en v0.1 ; les semis ne grandissent pas l'hiver.
 
 ## Le réseau mycélien : recherche et adaptations
 
@@ -409,7 +417,7 @@ La première version jouable couvre l'Ère I en 15 minutes de jeu. Le prestige a
 **Versions**
 
 1. **v0.0 — Le socle.** Outillage, moteur pur, sauvegarde versionnée, boucle temps réel, hors ligne, debug, CI. _Fait._
-2. **v0.1 — Le noyau.** Ressources et plafonds, plantations à prix croissant, Murmurer, saisons. Terminée quand on joue 15 minutes jusqu'à la Floraison.
+2. **v0.1 — Le noyau.** Ressources et plafonds, plantations à prix croissant, Murmurer, saisons, premières Découvertes. Terminée quand on joue 15 minutes jusqu'à la Floraison. _Fait : le joueur simulé l'atteint en 15 min 02._
 3. **v0.2 — La prairie et la faune.** Mycélium, Fleurs et Graines, niches et espèces, nourriture, Équilibre. Ères II et III. Terminée quand on joue 3 heures sans blocage et que le simulateur tourne.
 4. **v0.3 — La forêt.** Stades de croissance, canopée, bois mort, champignons, adaptations, météo et menaces. Ère IV.
 5. **v0.4 — Le feu.** L'essentiel des Ères V et VI, Incendie, Cendre, Graines dormantes. Terminée quand une boucle complète de prestige fonctionne.
@@ -419,7 +427,7 @@ La première version jouable couvre l'Ère I en 15 minutes de jeu. Le prestige a
 **Questions ouvertes**
 
 - [x] Le nom « Sylve » convient-il ? Oui.
-- [ ] Le bouton Murmurer : à quoi sert-il, et reste-t-il utile toute la partie ?
+- [x] Le bouton Murmurer : +1 Sève par clic pour lancer la partie, négligeable ensuite (voir « Règles précisées en v0.1 »).
 - [x] Prédation : vraie dynamique proies-prédateurs.
 - [x] Langue : anglais d'abord, français ensuite.
 - [ ] Faut-il une couche de prestige au-dessus de l'Incendie ? Quel en serait l'intérêt ?

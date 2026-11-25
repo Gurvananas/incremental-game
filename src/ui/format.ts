@@ -11,11 +11,19 @@ export interface FormatOptions {
 
 const formatters = new Map<string, Intl.NumberFormat>();
 
+/** Up to 2 decimals; below 1, two significant digits so small rates stay readable (0.012). */
 function plain(value: number, locale: string): string {
-  let formatter = formatters.get(locale);
+  const small = value !== 0 && Math.abs(value) < 1;
+  const key = `${locale}:${small ? 'small' : 'normal'}`;
+  let formatter = formatters.get(key);
   if (formatter === undefined) {
-    formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 2, useGrouping: false });
-    formatters.set(locale, formatter);
+    formatter = new Intl.NumberFormat(
+      locale,
+      small
+        ? { maximumSignificantDigits: 2, useGrouping: false }
+        : { maximumFractionDigits: 2, useGrouping: false },
+    );
+    formatters.set(key, formatter);
   }
   return formatter.format(value);
 }
@@ -75,4 +83,16 @@ export function formatDuration(seconds: number): string {
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
   return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+}
+
+const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'] as const;
+
+/** Roman numeral for era numbers (1 to 10). */
+export function roman(value: number): string {
+  return NUMERALS[value - 1] ?? String(value);
+}
+
+/** Percentage without decimals beyond what matters: 0.05 → "5", 0.125 → "12.5". */
+export function formatPercent(ratio: number, options: FormatOptions): string {
+  return formatNumber(Math.round(ratio * 1000) / 10, options);
 }
