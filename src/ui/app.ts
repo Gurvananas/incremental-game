@@ -58,7 +58,12 @@ export function mountApp(
   });
 
   root.append(
-    h('header', { className: 'top' }, [h('h1', { text: t('game.title') }), era, date]),
+    h('header', { className: 'top' }, [
+      h('h1', { text: t('game.title') }),
+      era,
+      date,
+      h('span', { className: 'version', text: `v${__APP_VERSION__}` }),
+    ]),
     h('main', { className: 'layout' }, [
       resources.element,
       h('section', { className: 'panel center' }, [

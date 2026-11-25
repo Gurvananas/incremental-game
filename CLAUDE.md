@@ -62,3 +62,5 @@ Flux : `data` → `engine` (calcule un nouvel état) → `ui` (affiche). Jamais 
   d'accélérer le temps (×10, ×100), sauter une saison, remplir les ressources, exporter/importer, recommencer.
 - Langue du jeu dans l'URL : `?lang=fr`. Panneau de debug en production : `?debug`.
 - Si une décision de design change, mettre à jour `docs/design.md` et `docs/decisions.md` dans le même commit.
+- **Version** : le numéro affiché dans le jeu vient de `package.json`. Le monter à chaque version livrée
+  (`npm pkg set version=0.2.0`), dans le commit qui termine la version.
