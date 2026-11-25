@@ -1,55 +1,73 @@
-import { RESOURCE_IDS } from '../data/resources';
 import { getCalendar } from '../engine/calendar';
-import { getCaps, getRates } from '../engine/production';
 import type { GameState } from '../engine/state';
-import { getLocale, t } from '../i18n';
-import { h, textSlot } from './dom';
-import { formatNumber, formatRate } from './format';
+import { getEra, isResourceVisible } from '../engine/unlocks';
+import { t } from '../i18n';
+import { button, classSlot, h, hiddenSlot, textSlot } from './dom';
+import { createForestTab, type Act } from './forestTab';
+import { roman } from './format';
 import type { Journal } from './journal';
+import { createMyceliumTab } from './myceliumTab';
+import { createNarrator } from './narrator';
+import { createResourcesPanel } from './resourcesPanel';
+
+type TabId = 'forest' | 'mycelium';
 
 /** Builds the screen once and returns a render function that only writes what changed. */
-export function mountApp(root: HTMLElement, journal: Journal): (state: GameState) => void {
+export function mountApp(
+  root: HTMLElement,
+  journal: Journal,
+  act: Act,
+): (state: GameState) => void {
+  const era = h('p', { className: 'era' });
+  const setEra = textSlot(era);
   const date = h('p', { className: 'date' });
   const setDate = textSlot(date);
 
-  const rows = RESOURCE_IDS.map((id) => {
-    const amount = h('span', { className: 'amount' });
-    const rate = h('span', { className: 'rate' });
-    const fill = h('div', { className: 'bar-fill' });
-    const element = h('li', { className: 'resource' }, [
-      h('span', { className: 'name', text: t(`resource.${id}`) }),
-      amount,
-      rate,
-      h('div', { className: 'bar' }, [fill]),
-    ]);
+  const resources = createResourcesPanel();
+  const forest = createForestTab(act);
+  const mycelium = createMyceliumTab(act);
+  const narrate = createNarrator(journal);
+
+  let active: TabId = 'forest';
+  let myceliumOpen = false;
+  const applyTabs = (): void => {
+    for (const tab of tabs) {
+      tab.setHidden(tab.id === 'mycelium' && !myceliumOpen);
+      tab.setActive(tab.id === active);
+      tab.setPanelHidden(tab.id !== active);
+    }
+  };
+  const tabs = (
+    [
+      { id: 'forest', label: t('tab.forest'), panel: forest.element },
+      { id: 'mycelium', label: t('tab.mycelium'), panel: mycelium.element },
+    ] as const
+  ).map((tab) => {
+    const element = button({ className: 'tab', text: tab.label }, [], () => {
+      active = tab.id;
+      applyTabs();
+    });
+    element.setAttribute('role', 'tab');
     return {
-      id,
+      ...tab,
       element,
-      fill,
-      setAmount: textSlot(amount),
-      setRate: textSlot(rate),
-      lastFill: -1,
+      setHidden: hiddenSlot(element),
+      setActive: classSlot(element, 'active'),
+      setPanelHidden: hiddenSlot(tab.panel),
     };
   });
 
   root.append(
-    h('header', { className: 'top' }, [
-      h('h1', { text: t('game.title') }),
-      h('p', { className: 'tagline', text: t('game.tagline') }),
-      date,
-    ]),
+    h('header', { className: 'top' }, [h('h1', { text: t('game.title') }), era, date]),
     h('main', { className: 'layout' }, [
-      h('aside', { className: 'panel resources' }, [
-        h('h2', { text: t('panel.resources') }),
+      resources.element,
+      h('section', { className: 'panel center' }, [
         h(
-          'ul',
-          {},
-          rows.map((row) => row.element),
+          'nav',
+          { className: 'tabs' },
+          tabs.map((tab) => tab.element),
         ),
-      ]),
-      h('section', { className: 'panel forest' }, [
-        h('h2', { text: t('panel.forest') }),
-        h('p', { className: 'muted', text: t('forest.empty') }),
+        ...tabs.map((tab) => tab.panel),
       ]),
       h('aside', { className: 'panel journal' }, [
         h('h2', { text: t('panel.journal') }),
@@ -59,8 +77,9 @@ export function mountApp(root: HTMLElement, journal: Journal): (state: GameState
   );
 
   return (state) => {
-    const locale = getLocale();
     const calendar = getCalendar(state.days);
+    const currentEra = getEra(state);
+    setEra(t('era.label', { numeral: roman(currentEra), name: t(`era.${currentEra}`) }));
     setDate(
       t('calendar.date', {
         season: t(`season.${calendar.season}`),
@@ -69,19 +88,16 @@ export function mountApp(root: HTMLElement, journal: Journal): (state: GameState
       }),
     );
 
-    const caps = getCaps(state);
-    const rates = getRates(state);
-    for (const row of rows) {
-      const amount = state.resources[row.id];
-      const cap = caps[row.id];
-      const rate = rates[row.id];
-      row.setAmount(`${formatNumber(amount, { locale })} / ${formatNumber(cap, { locale })}`);
-      row.setRate(rate === 0 ? '' : formatRate(rate, { locale }));
-      const fill = cap > 0 ? Math.round((amount / cap) * 200) / 2 : 0;
-      if (fill !== row.lastFill) {
-        row.fill.style.width = `${fill}%`;
-        row.lastFill = fill;
-      }
+    myceliumOpen = isResourceVisible(state, 'spores');
+    if (!myceliumOpen && active === 'mycelium') {
+      active = 'forest';
     }
+    applyTabs();
+
+    // Both tabs are kept up to date, so switching tabs never shows stale buttons.
+    resources.render(state);
+    forest.render(state);
+    mycelium.render(state);
+    narrate(state);
   };
 }

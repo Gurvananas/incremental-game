@@ -1,11 +1,14 @@
+import { DISCOVERY_IDS, type DiscoveryId } from '../data/discoveries';
+import { PLANT_IDS, type PlantId } from '../data/plants';
 import { RESOURCE_IDS } from '../data/resources';
-import { initialResources, type GameState } from './state';
+import { initialResources, noPlants, type GameState, type Seedling } from './state';
 
 /**
  * Save format version. Bump it, and add a migration below, whenever the
  * shape of GameState changes in a way hydrate() cannot absorb on its own
  * (a renamed or removed field, a field whose meaning changes).
- * Adding a new resource does NOT need a migration.
+ * Adding a new resource, plant or discovery, or a new field with a safe
+ * default, does NOT need a migration: hydrate() fills the gaps.
  */
 export const SAVE_VERSION = 1;
 
@@ -44,6 +47,45 @@ function isNonNegativeNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 
+function isPlantId(value: unknown): value is PlantId {
+  return (PLANT_IDS as readonly unknown[]).includes(value);
+}
+
+function isDiscoveryId(value: unknown): value is DiscoveryId {
+  return (DISCOVERY_IDS as readonly unknown[]).includes(value);
+}
+
+function hydratePlants(raw: unknown): Record<PlantId, number> {
+  const plants = noPlants();
+  if (isRecord(raw)) {
+    for (const id of PLANT_IDS) {
+      const count = raw[id];
+      if (isNonNegativeNumber(count) && Number.isInteger(count)) {
+        plants[id] = count;
+      }
+    }
+  }
+  return plants;
+}
+
+function hydrateSeedlings(raw: unknown): Seedling[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw.flatMap((item: unknown) =>
+    isRecord(item) && isPlantId(item.plant) && isNonNegativeNumber(item.daysLeft)
+      ? [{ plant: item.plant, daysLeft: item.daysLeft }]
+      : [],
+  );
+}
+
+function hydrateDiscoveries(raw: unknown): DiscoveryId[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return [...new Set(raw.filter(isDiscoveryId))];
+}
+
 export function serialize(state: GameState, savedAt: number): string {
   const file: SaveFile = { version: SAVE_VERSION, savedAt, state };
   return JSON.stringify(file);
@@ -74,7 +116,7 @@ export function migrate(
   return current;
 }
 
-/** Builds a valid GameState from untrusted data. Missing resources get their initial amount. */
+/** Builds a valid GameState from untrusted data. Missing parts get their starting value. */
 function hydrate(raw: unknown): GameState {
   if (!isRecord(raw)) {
     throw new SaveError('corrupt', 'The save has no game state.');
@@ -94,7 +136,14 @@ function hydrate(raw: unknown): GameState {
       }
     }
   }
-  return { days: raw.days, resources, rng: raw.rng >>> 0 };
+  return {
+    days: raw.days,
+    resources,
+    plants: hydratePlants(raw.plants),
+    seedlings: hydrateSeedlings(raw.seedlings),
+    discoveries: hydrateDiscoveries(raw.discoveries),
+    rng: raw.rng >>> 0,
+  };
 }
 
 export function deserialize(

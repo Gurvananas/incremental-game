@@ -7,6 +7,7 @@
   --border: #d9d5c7;
   --accent: #3f7a4a;
   --bar: #e6e2d4;
+  --danger: #a5442f;
   --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -19,11 +20,17 @@
     --border: #353b2f;
     --accent: #7fbf87;
     --bar: #2c3227;
+    --danger: #e08a72;
   }
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Elements hidden by the UI stay hidden whatever their display style. */
+[hidden] {
+  display: none !important;
 }
 
 body {
@@ -53,7 +60,7 @@ body {
   color: var(--accent);
 }
 
-.tagline {
+.era {
   margin: 0;
   color: var(--muted);
 }
@@ -177,4 +184,130 @@ body {
   border-color: var(--accent);
   color: var(--accent);
   font-weight: 600;
+}
+
+.resource[title] {
+  cursor: help;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin: -4px 0 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  font: inherit;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.tab.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font: inherit;
+  text-align: left;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.card:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.card:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.card:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.card-name {
+  font-weight: 600;
+}
+
+.card-count {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-effect {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.cost {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cost-item.short {
+  color: var(--muted);
+}
+
+.cost-item.over,
+.cost-note.over {
+  color: var(--danger);
+}
+
+.cost-item.over {
+  font-weight: 600;
+}
+
+.cost-note {
+  color: var(--muted);
+}
+
+.murmur {
+  border-style: dashed;
+}
+
+.intro {
+  margin-top: 0;
+}
+
+.done h3 {
+  margin: 16px 0 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.done li {
+  display: inline-block;
+  margin-right: 12px;
 }

@@ -46,6 +46,24 @@ describe('step', () => {
   });
 });
 
+describe('growth', () => {
+  const seedling = { plant: 'grass' as const, daysLeft: 10 };
+
+  it('turns a seedling into an adult after its growth time', () => {
+    const state = { ...createInitialState(1), seedlings: [seedling] };
+    const grown = advance(state, 10 * SECONDS_PER_DAY);
+    expect(grown.seedlings).toEqual([]);
+    expect(grown.plants.grass).toBe(1);
+  });
+
+  it('pauses in winter', () => {
+    const winter = { ...createInitialState(1), days: 3 * DAYS_PER_SEASON, seedlings: [seedling] };
+    const later = advance(winter, 20 * SECONDS_PER_DAY);
+    expect(later.plants.grass).toBe(0);
+    expect(later.seedlings).toEqual([seedling]);
+  });
+});
+
 describe('advance', () => {
   it('gives the same result as repeated fixed steps', () => {
     const start = withWater(0);
