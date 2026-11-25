@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { RESOURCE_IDS } from '../data/resources';
+import { SPECIES_IDS } from '../data/species';
 import { OFFLINE_MAX_SECONDS, SECONDS_PER_DAY } from '../data/time';
 import { simulateOffline } from './offline';
 import { createInitialState } from './state';
+import { makeState } from './testing';
+import { advance } from './tick';
 
 describe('simulateOffline', () => {
   it('simulates the time spent away', () => {
@@ -19,5 +23,33 @@ describe('simulateOffline', () => {
   it('ignores negative time (a clock moved backwards)', () => {
     const state = createInitialState(1);
     expect(simulateOffline(state, -500)).toEqual({ state, simulatedSeconds: 0 });
+  });
+});
+
+describe('coarse offline steps', () => {
+  it('stay close to real-time play', () => {
+    const state = makeState({
+      plants: { grass: 30, moss: 20, lichen: 20, clover: 20, flowers: 20, brambles: 10, hazel: 8 },
+      assignments: { earthworm: 10, ant: 10, bee: 20, butterfly: 20, tit: 18, hedgehog: 10 },
+      animals: { earthworm: 5, ant: 5, bee: 10, butterfly: 10, tit: 9, hedgehog: 5 },
+      resources: { water: 500, litter: 50, nectar: 100, insects: 50, berries: 50 },
+      discoveries: [
+        'symbiosis',
+        'rooting',
+        'flowering',
+        'pollination',
+        'dispersal',
+        'fruiting',
+        'foodChain',
+      ],
+    });
+    const realTime = advance(state, 3600);
+    const offline = simulateOffline(state, 3600).state;
+    for (const id of RESOURCE_IDS) {
+      expect(offline.resources[id], id).toBeCloseTo(realTime.resources[id], -1);
+    }
+    for (const id of SPECIES_IDS) {
+      expect(offline.animals[id], id).toBeCloseTo(realTime.animals[id], 0);
+    }
   });
 });

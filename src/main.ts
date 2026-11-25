@@ -50,14 +50,15 @@ if (root === null) {
   throw new Error('Missing #app element');
 }
 
-const render = mountApp(root, journal, (update) => {
+const app = mountApp(root, journal, (update) => {
   const next = update(state);
   if (next !== state) {
     state = next;
     save();
-    render(state);
+    app.render(state);
   }
 });
+const render = (current: GameState): void => app.render(current);
 const save = (): void => writeSave(state, Date.now());
 
 if (import.meta.env.DEV || params.has('debug')) {
@@ -83,14 +84,14 @@ if (import.meta.env.DEV || params.has('debug')) {
         }
         journal.add(t('journal.importFailed'));
       }
-      render(state);
+      app.replace(state);
     },
     reset: () => {
       clearSave();
       state = createInitialState(newSeed());
       save();
       journal.add(t('journal.newGame'));
-      render(state);
+      app.replace(state);
     },
   });
 }

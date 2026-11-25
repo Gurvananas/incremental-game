@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { runSimulation } from './simulate';
 
-const report = runSimulation({ seed: 1, seconds: 25 * 60 });
+/** One long run shared by the pacing checks: a first game, played for 3 h 30. */
+const report = runSimulation({ seed: 1, seconds: 210 * 60 });
+const { milestones } = report;
+const minutes = (value: number | undefined): number => (value ?? Number.POSITIVE_INFINITY) / 60;
 
 describe('runSimulation', () => {
   it('is deterministic for a given seed', () => {
@@ -25,20 +28,38 @@ describe('runSimulation', () => {
   });
 });
 
-/** Pacing targets from docs/design.md ("Règles de rythme", Era I in about 15 minutes). */
+/** Pacing targets from docs/design.md ("Règles de rythme" and the era table). */
 describe('pacing (simulated active player)', () => {
   it('makes the first purchase within 10 seconds', () => {
-    expect(report.milestones.firstPlant).toBeLessThan(10);
-  });
-
-  it('reaches Flowering, and Era II, in 12 to 18 minutes', () => {
-    const flowering = report.milestones.discoveries.flowering;
-    expect(flowering).toBeGreaterThanOrEqual(12 * 60);
-    expect(flowering).toBeLessThanOrEqual(18 * 60);
-    expect(report.milestones.eras[2]).toBe(flowering);
+    expect(milestones.firstPlant).toBeLessThan(10);
   });
 
   it('makes the first discovery within 5 minutes', () => {
-    expect(report.milestones.discoveries.symbiosis).toBeLessThanOrEqual(5 * 60);
+    expect(minutes(milestones.discoveries.symbiosis)).toBeLessThanOrEqual(5);
+  });
+
+  it('opens Era II at about 15 minutes', () => {
+    expect(minutes(milestones.eras[2])).toBeGreaterThanOrEqual(12);
+    expect(minutes(milestones.eras[2])).toBeLessThanOrEqual(18);
+  });
+
+  it('opens Era III at about one hour', () => {
+    expect(minutes(milestones.eras[3])).toBeGreaterThanOrEqual(50);
+    expect(minutes(milestones.eras[3])).toBeLessThanOrEqual(90);
+  });
+
+  it('opens Era IV (end of v0.2 content) at about three hours', () => {
+    expect(minutes(milestones.eras[4])).toBeGreaterThanOrEqual(150);
+    expect(minutes(milestones.eras[4])).toBeLessThanOrEqual(210);
+  });
+
+  it('never leaves the player more than 10 minutes without anything to buy', () => {
+    expect(minutes(milestones.longestWait)).toBeLessThanOrEqual(10);
+  });
+
+  it('brings every species of Eras I to III', () => {
+    expect(Object.keys(milestones.species).sort()).toEqual(
+      ['ant', 'bee', 'butterfly', 'earthworm', 'fox', 'hedgehog', 'rabbit', 'tit'].sort(),
+    );
   });
 });

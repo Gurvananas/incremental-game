@@ -3,7 +3,7 @@ import { getCaps, getProduction, type Production } from '../engine/production';
 import type { GameState } from '../engine/state';
 import { isResourceVisible } from '../engine/unlocks';
 import { getLocale, t } from '../i18n';
-import { plantName, resourceName } from './describe';
+import { isPlantSource, plantName, resourceName, speciesName } from './describe';
 import { h, hiddenSlot, slot, textSlot } from './dom';
 import { formatNumber, formatPercent, formatRate } from './format';
 
@@ -11,18 +11,40 @@ import { formatNumber, formatPercent, formatRate } from './format';
 function breakdown(id: ResourceId, production: Production): string {
   const locale = getLocale();
   const lines = production.lines[id].map((line) => {
-    const source =
-      line.source === 'rain'
-        ? t('breakdown.rain')
-        : t('breakdown.plant', { name: plantName(line.source), count: line.count });
+    let source: string;
+    if (line.source === 'rain') {
+      source = t('breakdown.rain');
+    } else if (line.source === 'decay') {
+      source = t('breakdown.decay');
+    } else {
+      const name = isPlantSource(line.source) ? plantName(line.source) : speciesName(line.source);
+      source = t('breakdown.plant', {
+        name,
+        count: formatNumber(Math.floor(line.count), { locale }),
+      });
+    }
     return `${source}: ${formatRate(line.amount, { locale })}`;
   });
-  const { sapSeason, sapBonus, waterSupply } = production.modifiers;
+  const { sapSeason, sapBonus, waterSupply, balanceMultiplier, pests, seedBonus } =
+    production.modifiers;
+  const factor = (value: number): string => formatNumber(value, { locale });
   if (id === 'sap' && production.lines.sap.length > 0) {
-    lines.push(t('breakdown.season', { factor: formatNumber(sapSeason, { locale }) }));
+    lines.push(t('breakdown.season', { factor: factor(sapSeason) }));
     if (sapBonus > 1) {
-      lines.push(t('breakdown.sapBonus', { factor: formatNumber(sapBonus, { locale }) }));
+      lines.push(t('breakdown.sapBonus', { factor: factor(sapBonus) }));
     }
+    if (pests < 1) {
+      lines.push(t('breakdown.pests', { factor: factor(pests) }));
+    }
+  }
+  if (id === 'seeds' && seedBonus > 1) {
+    lines.push(t('breakdown.seedBonus', { factor: factor(seedBonus) }));
+  }
+  if (
+    balanceMultiplier !== 1 &&
+    production.lines[id].some((line) => line.amount > 0 && line.source !== 'rain')
+  ) {
+    lines.push(t('breakdown.balance', { factor: factor(balanceMultiplier) }));
   }
   if (id === 'water' && waterSupply < 1) {
     lines.push(t('breakdown.waterShortage', { percent: formatPercent(waterSupply, { locale }) }));

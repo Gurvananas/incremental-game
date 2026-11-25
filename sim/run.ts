@@ -2,6 +2,7 @@ import { DISCOVERY_IDS } from '../src/data/discoveries';
 import { ERAS } from '../src/data/eras';
 import { PLANT_IDS } from '../src/data/plants';
 import { RESOURCE_IDS } from '../src/data/resources';
+import { SPECIES_IDS } from '../src/data/species';
 import { runSimulation } from './simulate';
 
 /** Usage: npm run sim -- --minutes=60 --seed=42 */
@@ -24,7 +25,7 @@ function clock(seconds: number | undefined): string {
   return `${m}:${s}`;
 }
 
-const minutes = numberArg('minutes', 30);
+const minutes = numberArg('minutes', 210);
 const seed = numberArg('seed', 1);
 const report = runSimulation({ seed, seconds: minutes * 60 });
 const { milestones } = report;
@@ -38,6 +39,13 @@ for (const id of DISCOVERY_IDS) {
 for (const era of ERAS.filter((e) => e > 1)) {
   console.log(`  era ${String(era).padEnd(14)} ${clock(milestones.eras[era])}`);
 }
+console.log('First individual of each species');
+for (const id of SPECIES_IDS) {
+  console.log(`  ${id.padEnd(18)} ${clock(milestones.species[id])}`);
+}
+console.log(
+  `Longest wait without buying: ${clock(milestones.longestWait)} (from ${clock(milestones.longestWaitFrom)})`,
+);
 
 console.log('\nStart of each season');
 console.table(
@@ -46,6 +54,7 @@ console.table(
     date: `Y${date.year} ${date.season}`,
     ...Object.fromEntries(RESOURCE_IDS.map((id) => [id, state.resources[id].toFixed(1)])),
     ...Object.fromEntries(PLANT_IDS.map((id) => [id, state.plants[id]])),
+    ...Object.fromEntries(SPECIES_IDS.map((id) => [id, Math.floor(state.animals[id])])),
   })),
 );
 

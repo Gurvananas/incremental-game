@@ -10,7 +10,7 @@ import {
   serialize,
   type Migration,
 } from './save';
-import { createInitialState } from './state';
+import { createInitialState, noPlants } from './state';
 import { advance } from './tick';
 
 function reasonOf(action: () => unknown): string {
@@ -72,6 +72,25 @@ describe('serialize / deserialize', () => {
     expect(state.plants.grass).toBe(0);
   });
 
+  it('keeps animals and assignments, and drops invalid ones', () => {
+    const text = JSON.stringify({
+      version: SAVE_VERSION,
+      savedAt: 0,
+      state: {
+        days: 0,
+        rng: 1,
+        animals: { earthworm: 2.5, unicorn: 3, rabbit: -1 },
+        assignments: { earthworm: 3, bee: 1.5 },
+      },
+    });
+    const { state } = deserialize(text);
+    expect(state.animals.earthworm).toBe(2.5);
+    expect(state.animals.rabbit).toBe(0);
+    expect(state.animals).not.toHaveProperty('unicorn');
+    expect(state.assignments.earthworm).toBe(3);
+    expect(state.assignments.bee).toBe(0);
+  });
+
   it('drops invalid plants, seedlings and discoveries', () => {
     const text = JSON.stringify({
       version: SAVE_VERSION,
@@ -85,7 +104,7 @@ describe('serialize / deserialize', () => {
       },
     });
     const { state } = deserialize(text);
-    expect(state.plants).toEqual({ grass: 0, moss: 3, lichen: 0, clover: 0 });
+    expect(state.plants).toEqual({ ...noPlants(), moss: 3 });
     expect(state.seedlings).toEqual([{ plant: 'grass', daysLeft: 4 }]);
     expect(state.discoveries).toEqual(['symbiosis']);
   });
