@@ -17,9 +17,9 @@ import { RESOURCE_IDS, RESOURCES, type ResourceId } from '../data/resources';
 import { SPECIES, SPECIES_IDS, type Food, type SpeciesId } from '../data/species';
 import { SECONDS_PER_DAY, type Season } from '../data/time';
 import { getCalendar } from './calendar';
-import { getNiches } from './habitat';
+import { capacityFrom, getNiches } from './habitat';
 import type { GameState } from './state';
-import { isBalanceActive, ownedCount } from './unlocks';
+import { isBalanceActive } from './unlocks';
 
 export type PerResource = Record<ResourceId, number>;
 export type PerSpecies<T> = Record<SpeciesId, T>;
@@ -67,6 +67,10 @@ export interface Production {
   readonly eaten: Readonly<PerSpecies<number>>;
   /** Species asleep right now (hibernation). */
   readonly asleep: Readonly<PerSpecies<boolean>>;
+  /** Storage caps, computed once per step. */
+  readonly caps: Readonly<PerResource>;
+  /** How many individuals each species' niches can hold. */
+  readonly capacity: Readonly<PerSpecies<number>>;
 }
 
 function perResource(value: number): PerResource {
@@ -139,10 +143,24 @@ function satisfaction(stock: number, income: number, demand: number): number {
   return Math.min(1, Math.max(0, income) / demand);
 }
 
+/** Adults plus seedlings, for every plant, in one pass over the seedlings. */
+function ownedCounts(state: GameState): Record<PlantId, number> {
+  const owned = { ...state.plants } as Record<PlantId, number>;
+  for (const seedling of state.seedlings) {
+    owned[seedling.plant] += 1;
+  }
+  return owned;
+}
+
 export function getProduction(state: GameState): Production {
   const { season } = getCalendar(state.days);
   const caps = getCaps(state);
   const niches = getNiches(state);
+  const owned = ownedCounts(state);
+  const capacity = perSpecies(0);
+  for (const id of SPECIES_IDS) {
+    capacity[id] = capacityFrom(state, id, niches);
+  }
   const lines = {} as Record<ResourceId, RateLine[]>;
   for (const id of RESOURCE_IDS) {
     lines[id] = [];
@@ -185,7 +203,7 @@ export function getProduction(state: GameState): Production {
   let waterDemand = 0;
   for (const plant of PLANT_IDS) {
     waterIncome += state.plants[plant] * (PLANTS[plant].produces.water ?? 0);
-    waterDemand += ownedCount(state, plant) * PLANTS[plant].drinks;
+    waterDemand += owned[plant] * PLANTS[plant].drinks;
   }
   const waterSupply = satisfaction(state.resources.water, waterIncome, waterDemand);
 
@@ -208,9 +226,9 @@ export function getProduction(state: GameState): Production {
         lines[id].push({ source: plant, count: adults, amount });
       }
     }
-    const owned = ownedCount(state, plant);
-    if (def.drinks > 0 && owned > 0) {
-      lines.water.push({ source: plant, count: owned, amount: -owned * def.drinks * waterSupply });
+    const count = owned[plant];
+    if (def.drinks > 0 && count > 0) {
+      lines.water.push({ source: plant, count, amount: -count * def.drinks * waterSupply });
     }
   }
 
@@ -343,6 +361,8 @@ export function getProduction(state: GameState): Production {
     fed,
     eaten,
     asleep,
+    caps,
+    capacity,
   };
 }
 

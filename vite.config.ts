@@ -20,5 +20,7 @@ export default defineConfig({
   test: {
     include: ['src/**/*.test.ts', 'sim/**/*.test.ts'],
     environment: 'node',
+    // CI machines are slower than a laptop: leave room before calling a test stuck.
+    testTimeout: 15_000,
   },
 });

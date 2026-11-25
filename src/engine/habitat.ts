@@ -35,8 +35,17 @@ export function freeNiches(state: GameState, niche: NicheId): number {
  * in proportion.
  */
 export function getCapacity(state: GameState, id: SpeciesId): number {
+  return capacityFrom(state, id, getNiches(state));
+}
+
+/** Same as getCapacity, with niches already computed (hot path of the simulation). */
+export function capacityFrom(
+  state: GameState,
+  id: SpeciesId,
+  niches: Readonly<Record<NicheId, number>>,
+): number {
   const niche = SPECIES[id].niche;
-  const available = getNiches(state)[niche];
+  const available = niches[niche];
   const assigned = assignedIn(state, niche);
   if (assigned <= available) {
     return state.assignments[id];

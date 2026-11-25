@@ -5,8 +5,7 @@ import { RESOURCE_IDS, type ResourceId } from '../data/resources';
 import { SPECIES, SPECIES_IDS, type SpeciesId } from '../data/species';
 import { SECONDS_PER_DAY } from '../data/time';
 import { getCalendar } from './calendar';
-import { getCapacity } from './habitat';
-import { getCaps, getProduction, type Production } from './production';
+import { getProduction, type Production } from './production';
 import type { GameState, Seedling } from './state';
 
 /** Fixed simulation step, in real seconds (5 ticks per second). */
@@ -49,7 +48,7 @@ function updateAnimals(
   const animals = { ...state.animals } as Record<SpeciesId, number>;
   for (const id of SPECIES_IDS) {
     const n = state.animals[id];
-    const capacity = getCapacity(state, id);
+    const capacity = production.capacity[id];
     if ((n === 0 && capacity === 0) || production.asleep[id]) {
       continue;
     }
@@ -69,7 +68,7 @@ function updateAnimals(
 /** Advances the game by `dt` real seconds. Pure: returns a new state. */
 export function step(state: GameState, dt: number): GameState {
   const production = getProduction(state);
-  const caps = getCaps(state);
+  const { caps } = production;
   const resources = { ...state.resources } as Record<ResourceId, number>;
   for (const id of RESOURCE_IDS) {
     resources[id] = clamp(resources[id] + production.rates[id] * dt, 0, caps[id]);
