@@ -25,7 +25,7 @@ function clock(seconds: number | undefined): string {
   return `${m}:${s}`;
 }
 
-const minutes = numberArg('minutes', 210);
+const minutes = numberArg('minutes', 480);
 const seed = numberArg('seed', 1);
 const report = runSimulation({ seed, seconds: minutes * 60 });
 const { milestones } = report;

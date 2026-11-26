@@ -73,8 +73,14 @@ export function createForestTab(act: Act): {
           continue;
         }
         const growing = state.seedlings.filter((s) => s.plant === card.id).length;
-        const owned = t('plant.owned', { count: state.plants[card.id] });
-        card.setCount(growing > 0 ? `${owned} (${t('plant.growing', { count: growing })})` : owned);
+        const parts = [t('plant.owned', { count: state.plants[card.id] })];
+        if (growing > 0) {
+          parts.push(`(${t('plant.growing', { count: growing })})`);
+        }
+        if (state.old[card.id] > 0) {
+          parts.push(`· ${t('plant.old', { count: state.old[card.id] })}`);
+        }
+        card.setCount(parts.join(' '));
         card.setDisabled(!card.cost.update(state, getPlantCost(state, card.id)));
       }
     },

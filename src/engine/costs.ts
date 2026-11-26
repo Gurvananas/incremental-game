@@ -1,6 +1,6 @@
 import { PLANTS, type PlantId } from '../data/plants';
 import { RESOURCE_IDS, type Amounts, type ResourceId } from '../data/resources';
-import { getCaps, getRates } from './production';
+import { getProduction, type Production } from './production';
 import type { GameState } from './state';
 import { ownedCount } from './unlocks';
 
@@ -39,9 +39,13 @@ export type Affordability =
   /** A resource costs more than its storage can ever hold. */
   | { readonly kind: 'over-cap'; readonly resource: ResourceId };
 
-export function getAffordability(state: GameState, cost: Amounts): Affordability {
-  const caps = getCaps(state);
-  const rates = getRates(state);
+/** `production` can be passed in when it is already computed for this state. */
+export function getAffordability(
+  state: GameState,
+  cost: Amounts,
+  production: Production = getProduction(state),
+): Affordability {
+  const { caps, rates } = production;
   let seconds = 0;
   for (const id of RESOURCE_IDS) {
     const needed = cost[id] ?? 0;

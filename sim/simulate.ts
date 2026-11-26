@@ -10,6 +10,9 @@ import { advance } from '../src/engine/tick';
 import { getEra, ownedCount } from '../src/engine/unlocks';
 import { ACTIVE_PLAYER, botTurn, type BotProfile } from './strategy';
 
+/** Seconds between two decisions of the simulated player after the first hour. */
+const LATE_DECISION_EVERY = 5;
+
 export interface SimulationOptions {
   readonly seed: number;
   /** Real seconds to play. */
@@ -83,7 +86,9 @@ export function runSimulation({
   let lastSeason = getCalendar(0).season;
 
   for (let second = 0; second < seconds; second++) {
-    const turn = botTurn(state, second, profile);
+    // After the first hour the player checks in every few seconds, not every second.
+    const decides = second < 3600 || second % LATE_DECISION_EVERY === 0;
+    const turn = decides ? botTurn(state, second, profile) : { state, bought: false };
     state = turn.state;
     if (turn.bought) {
       if (second - lastPurchase > longestWait) {

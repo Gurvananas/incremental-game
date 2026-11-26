@@ -5,7 +5,8 @@ import { RESOURCE_IDS, type ResourceId } from '../data/resources';
 import { SPECIES, SPECIES_IDS, type SpeciesId } from '../data/species';
 import { SECONDS_PER_DAY } from '../data/time';
 import { getCalendar } from './calendar';
-import { getProduction, type Production } from './production';
+import { runDay } from './daily';
+import { getCaps, getProduction, type Production } from './production';
 import type { GameState, Seedling } from './state';
 
 /** Fixed simulation step, in real seconds (5 ticks per second). */
@@ -75,13 +76,32 @@ export function step(state: GameState, dt: number): GameState {
   }
   const days = dt / SECONDS_PER_DAY;
   const grown = grow(state, days, production.modifiers.grazing);
-  return {
+  let next: GameState = {
     ...grown,
     days: state.days + days,
     resources,
     animals: updateAnimals(state, production, days),
   };
+  // Once a day: weather, ageing, threats... (several days at once in coarse offline steps).
+  const firstDay = Math.floor(state.days + DAY_EPSILON) + 1;
+  const lastDay = Math.floor(next.days + DAY_EPSILON);
+  for (let day = firstDay; day <= lastDay; day++) {
+    next = runDay(next, day);
+  }
+  // Caps can shrink during the step (animals that add storage leave, trees fall).
+  const after = getCaps(next);
+  if (RESOURCE_IDS.some((id) => next.resources[id] > after[id])) {
+    const clamped = { ...next.resources } as Record<ResourceId, number>;
+    for (const id of RESOURCE_IDS) {
+      clamped[id] = Math.min(clamped[id], after[id]);
+    }
+    next = { ...next, resources: clamped };
+  }
+  return next;
 }
+
+/** Same tolerance as the calendar, so daily events fire exactly on day boundaries. */
+const DAY_EPSILON = 1e-6;
 
 /**
  * Advances the game by `seconds` real seconds in fixed steps of `stepSeconds`.

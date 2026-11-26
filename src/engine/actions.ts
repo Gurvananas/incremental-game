@@ -1,13 +1,19 @@
 import { CALL_COST, CALL_INDIVIDUALS, MURMUR_SAP } from '../data/actions';
+import { ADAPTATIONS, type AdaptationId } from '../data/adaptations';
 import { DISCOVERIES, type DiscoveryId } from '../data/discoveries';
 import { PLANTS, type PlantId } from '../data/plants';
-import { RESOURCE_IDS, type ResourceId } from '../data/resources';
+import { RESOURCE_IDS, type Amounts, type ResourceId } from '../data/resources';
 import { SPECIES, type SpeciesId } from '../data/species';
 import { canAfford, getPlantCost, pay } from './costs';
 import { freeNiches, getCapacity } from './habitat';
 import { getCaps } from './production';
 import type { GameState } from './state';
-import { isDiscoveryAvailable, isPlantUnlocked, isSpeciesUnlocked } from './unlocks';
+import {
+  isAdaptationAvailable,
+  isDiscoveryAvailable,
+  isPlantUnlocked,
+  isSpeciesUnlocked,
+} from './unlocks';
 
 /**
  * Player actions. Each returns a new state, or the very same state object when
@@ -73,12 +79,29 @@ export function callSize(state: GameState, id: SpeciesId): number {
   return Math.max(0, Math.min(CALL_INDIVIDUALS, getCapacity(state, id) - state.animals[id]));
 }
 
+/** Songs for one Call, after the discounts of adaptations. */
+export function getCallCost(state: GameState): Amounts {
+  const discount = state.adaptations.reduce((sum, id) => sum + ADAPTATIONS[id].callDiscount, 0);
+  return { songs: CALL_COST.songs * Math.max(0, 1 - discount) };
+}
+
 /** A Call, paid in Songs, brings a few individuals at once into free assigned niches. */
 export function callSpecies(state: GameState, id: SpeciesId): GameState {
   const size = callSize(state, id);
-  if (!isSpeciesUnlocked(state, id) || size < 1 || !canAfford(state, CALL_COST)) {
+  const cost = getCallCost(state);
+  if (!isSpeciesUnlocked(state, id) || size < 1 || !canAfford(state, cost)) {
     return state;
   }
-  const paid = pay(state, CALL_COST);
+  const paid = pay(state, cost);
   return { ...paid, animals: { ...paid.animals, [id]: paid.animals[id] + size } };
+}
+
+/** Adopts an adaptation: a one-off, permanent upgrade. */
+export function adapt(state: GameState, id: AdaptationId): GameState {
+  const cost = ADAPTATIONS[id].cost;
+  if (!isAdaptationAvailable(state, id) || !canAfford(state, cost)) {
+    return state;
+  }
+  const paid = pay(state, cost);
+  return { ...paid, adaptations: [...paid.adaptations, id] };
 }

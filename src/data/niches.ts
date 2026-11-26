@@ -6,6 +6,9 @@ export const NICHE_IDS = [
   'thicket',
   'groundShelter',
   'burrow',
+  'branch',
+  'cavity',
+  'deadwood',
 ] as const;
 export type NicheId = (typeof NICHE_IDS)[number];
 

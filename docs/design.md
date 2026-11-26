@@ -146,6 +146,23 @@ Les bâtiments sont des plantations. Leur prix est multiplié par 1,15 à chaque
 
 Un jour de jeu dure 2 secondes : « 10 jours » font 20 secondes et « 3 ans » environ 40 minutes. Les chiffres sont des valeurs de départ à régler au simulateur.
 
+**Règles précisées en v0.3 (la forêt, Ère IV)**
+
+- **Stades.** Un semis passé la moitié de sa croissance est _jeune_ et produit déjà 50 %. Les arbres (Bouleau, Pin) vieillissent au hasard : en moyenne 15 ans pour le bouleau (30 pour le pin) avant d'être vieux, puis 5 ans (10) avant de tomber. Un vieil arbre ajoute du Bois mort et une Cavité ; en tombant, il laisse 15 à 20 Bois mort.
+- **Canopée.** Couronnes : Bouleau 1, Pin 1,5, sur une surface de 100. Plantes de soleil (Herbes, Trèfle, Fleurs) × (1 − canopée), plantes d'ombre (Mousse, Champignons) × (0,3 + canopée).
+- **Mycorhizes.** Bouleau et Pin vivent avec des champignons : +0,01 Spore/s et +40 / +60 de stockage de Spores chacun. Les arbres et le Noisetier offrent aussi une niche de Sol.
+- **Météo du jour.** Tirée au hasard (graine de la partie), un jour à l'avance. Durées : 2 à 10 jours, sauf Canicule 3 à 8, Gel tardif 1 à 3, Orage et Tempête 1 à 2. Le journal n'annonce que les menaces : Canicule, Gel tardif, Orage, Tempête.
+- **Années de glandée.** Tous les 2 à 5 ans, tirées au hasard ; Graines × 3 toute l'année.
+- **Sécheresse.** En été, Eau sous 20 % du stockage : plantes assoiffées à moitié, et 0,3 % des semis sèchent chaque jour.
+- **Tempêtes.** Chaque jour de tempête, 20 % des vieux arbres et 0,2 % des adultes tombent.
+- **Scolytes.** Au moins 5 pins, 40 % des arbres ou plus, et sécheresse ou canicule : alerte au premier jour, épidémie au troisième, fin après 5 jours calmes. Chaque pin meurt avec 3 % de chance par jour d'épidémie, moins 5 % par pic épeiche et 50 % avec l'Écorce épaisse (90 % de protection au plus).
+- **Foudre.** Les jours d'orage, 15 % de chance de frapper (−3 % par Mare, 80 % au plus) : 1 à 3 plantations vivantes brûlent.
+- **Semis gratuits.** Chaque écureuil et chaque geai plante en moyenne 0,0005 Noisetier par jour (des réserves oubliées).
+- **Champignons, Souche creuse, Tas de bois mort** coûtent 15, 20 et 25 Bois mort.
+- **Le Bois mort** se décompose de 1 % par jour.
+- **Adaptations** (Lignification) : Racines pivotantes, Feuilles cireuses, Bourgeons dormants, Floraison tardive (250 Nectar), Écorce épaisse, Mycorhizes profondes (après Mycorhizes), Chant territorial (100 Chants, car le stockage de Chants est de 100). Les Glands lourds attendent les chênes (Ère V).
+- **Hors ligne** : simulé par pas de 5 jours de jeu.
+
 **Règles précisées en v0.2 (faune et Ères II–III)**
 
 - **Arrivées et croissance.** Une espèce débloquée vient dans les niches qu'on lui donne : chaque jour, de nouveaux individus remplissent 2 % de la place libre (1 à 3 % selon l'espèce), puis la population nourrie grandit vers ses niches (croissance logistique). Elle ne dépasse jamais ses niches.
@@ -434,7 +451,7 @@ La première version jouable couvre l'Ère I en 15 minutes de jeu. Le prestige a
 1. **v0.0 — Le socle.** Outillage, moteur pur, sauvegarde versionnée, boucle temps réel, hors ligne, debug, CI. _Fait._
 2. **v0.1 — Le noyau.** Ressources et plafonds, plantations à prix croissant, Murmurer, saisons, premières Découvertes. Terminée quand on joue 15 minutes jusqu'à la Floraison. _Fait : le joueur simulé l'atteint en 15 min 02._
 3. **v0.2 — La prairie et la faune.** Mycélium, Fleurs et Graines, niches et espèces, nourriture, Équilibre. Ères II et III. Terminée quand on joue 3 heures sans blocage et que le simulateur tourne. _Fait : Ère II à 15 min, Ère III à 1 h 12, Ère IV à 2 h 50, jamais plus de 4 min 20 sans achat._
-4. **v0.3 — La forêt.** Stades de croissance, canopée, bois mort, champignons, adaptations, météo et menaces. Ère IV.
+4. **v0.3 — La forêt.** Stades de croissance, canopée, bois mort, champignons, adaptations, météo et menaces. Ère IV. _Fait : Ère IV à 3 h, Canopée (porte de l'Ère V) à 7 h 12 pour le joueur simulé._
 5. **v0.4 — Le feu.** L'essentiel des Ères V et VI, Incendie, Cendre, Graines dormantes. Terminée quand une boucle complète de prestige fonctionne.
 6. **v0.5 — Les couches profondes.** Échanges, Esprit, Mémoire, Territoire, Épreuves.
 7. **v1.0 — La sortie.** Équilibrage complet au simulateur, bande illustrée, version française complète.

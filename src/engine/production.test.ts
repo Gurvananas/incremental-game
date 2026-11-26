@@ -6,6 +6,7 @@ import {
 } from '../data/climate';
 import { PLANTS } from '../data/plants';
 import { RESOURCES } from '../data/resources';
+import { DROUGHT_PRODUCTION } from '../data/threats';
 import { DAYS_PER_SEASON } from '../data/time';
 import { getCaps, getProduction, getRates } from './production';
 import { makeState } from './testing';
@@ -54,10 +55,14 @@ describe('water shortage', () => {
     expect(modifiers.waterSupply).toBeCloseTo(rain / (40 * PLANTS.grass.drinks));
   });
 
-  it('slows their production and keeps water at zero', () => {
+  it('slows their production, halves it for the summer drought, and keeps water at zero', () => {
     const { modifiers, rates } = getProduction(dry);
+    expect(modifiers.drought).toBe(true);
     const fullSap =
-      40 * (PLANTS.grass.produces.sap ?? 0) * (SEASON_PRODUCTION_MULTIPLIER.sap?.summer ?? 1);
+      DROUGHT_PRODUCTION *
+      40 *
+      (PLANTS.grass.produces.sap ?? 0) *
+      (SEASON_PRODUCTION_MULTIPLIER.sap?.summer ?? 1);
     expect(rates.sap).toBeCloseTo(fullSap * modifiers.waterSupply);
     expect(rates.water).toBeCloseTo(0);
   });

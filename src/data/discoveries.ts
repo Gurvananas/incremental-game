@@ -13,6 +13,10 @@ export const DISCOVERY_IDS = [
   'foodChain',
   'predation',
   'lignification',
+  'decomposition',
+  'mycorrhizae',
+  'migration',
+  'canopy',
 ] as const;
 export type DiscoveryId = (typeof DISCOVERY_IDS)[number];
 
@@ -21,6 +25,8 @@ export interface DiscoveryDef {
   readonly requires: readonly DiscoveryId[];
   /** Multiplies storage caps. */
   readonly storageMultiplier: Amounts;
+  /** Multiplies everything produced of these resources. */
+  readonly productionMultiplier: Amounts;
   /** Given once, when the discovery is made. */
   readonly grants: Amounts;
   /** Era opened by this discovery. */
@@ -29,7 +35,7 @@ export interface DiscoveryDef {
   readonly revealsBalance?: boolean;
 }
 
-const BASE = { requires: [], storageMultiplier: {}, grants: {} } as const;
+const BASE = { requires: [], storageMultiplier: {}, productionMultiplier: {}, grants: {} } as const;
 
 export const DISCOVERIES: Readonly<Record<DiscoveryId, DiscoveryDef>> = {
   symbiosis: { ...BASE, cost: { spores: 10 } },
@@ -57,4 +63,14 @@ export const DISCOVERIES: Readonly<Record<DiscoveryId, DiscoveryDef>> = {
   foodChain: { ...BASE, cost: { spores: 700 }, requires: ['fruiting'], revealsBalance: true },
   predation: { ...BASE, cost: { spores: 1200 }, requires: ['foodChain'] },
   lignification: { ...BASE, cost: { spores: 2000 }, requires: ['fruiting'], era: 4 },
+  decomposition: { ...BASE, cost: { spores: 3500 }, requires: ['lignification'] },
+  mycorrhizae: {
+    ...BASE,
+    cost: { spores: 6000 },
+    requires: ['decomposition'],
+    productionMultiplier: { spores: 2 },
+    storageMultiplier: { spores: 2 },
+  },
+  migration: { ...BASE, cost: { spores: 5000 }, requires: ['lignification'] },
+  canopy: { ...BASE, cost: { spores: 9000 }, requires: ['lignification'], era: 5 },
 };

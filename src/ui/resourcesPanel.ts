@@ -1,4 +1,5 @@
 import { RESOURCE_IDS, type ResourceId } from '../data/resources';
+import { MAST_SEED_MULTIPLIER } from '../data/weather';
 import { getCaps, getProduction, type Production } from '../engine/production';
 import type { GameState } from '../engine/state';
 import { isResourceVisible } from '../engine/unlocks';
@@ -45,6 +46,12 @@ function breakdown(id: ResourceId, production: Production): string {
     production.lines[id].some((line) => line.amount > 0 && line.source !== 'rain')
   ) {
     lines.push(t('breakdown.balance', { factor: factor(balanceMultiplier) }));
+  }
+  if (production.modifiers.drought && (id === 'sap' || id === 'water')) {
+    lines.push(t('breakdown.drought'));
+  }
+  if (id === 'seeds' && production.modifiers.mast) {
+    lines.push(t('breakdown.mast', { factor: factor(MAST_SEED_MULTIPLIER) }));
   }
   if (id === 'water' && waterSupply < 1) {
     lines.push(t('breakdown.waterShortage', { percent: formatPercent(waterSupply, { locale }) }));

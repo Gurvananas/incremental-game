@@ -1,6 +1,5 @@
-import { CALL_COST } from '../data/actions';
 import { NICHE_IDS } from '../data/niches';
-import { assignNiches, callSize, callSpecies } from '../engine/actions';
+import { assignNiches, callSize, callSpecies, getCallCost } from '../engine/actions';
 import { canAfford } from '../engine/costs';
 import { freeNiches, getCapacity, getNiches, speciesIn } from '../engine/habitat';
 import { getProduction } from '../engine/production';
@@ -38,7 +37,7 @@ export function createFaunaTab(act: Act): {
       less.setAttribute('aria-label', `${t('fauna.less')}: ${speciesName(id)}`);
       more.setAttribute('aria-label', `${t('fauna.more')}: ${speciesName(id)}`);
       const callLabel = h('span');
-      const cost = createCostView(costResources(CALL_COST));
+      const cost = createCostView(costResources({ songs: 1 }));
       const call = button(
         { className: 'call', title: t('fauna.callHint') },
         [callLabel, cost.element],
@@ -130,8 +129,9 @@ export function createFaunaTab(act: Act): {
           row.setCallHidden(!songsVisible || size < 1);
           if (songsVisible && size >= 1) {
             row.setCallLabel(t('fauna.call', { count: Math.floor(size) }));
-            row.cost.update(state, CALL_COST);
-            row.setCallDisabled(size < 1 || !canAfford(state, CALL_COST));
+            const callCost = getCallCost(state);
+            row.cost.update(state, callCost);
+            row.setCallDisabled(size < 1 || !canAfford(state, callCost));
           }
         }
       }
