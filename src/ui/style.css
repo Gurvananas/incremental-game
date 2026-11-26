@@ -317,6 +317,12 @@ body {
   margin-right: 12px;
 }
 
+.sky {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .balance {
   margin: 0;
   padding: 0 8px;

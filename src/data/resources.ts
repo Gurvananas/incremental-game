@@ -25,6 +25,8 @@ export const RESOURCES = {
   berries: { initial: 0, baseCap: 100, startsVisible: false, decayPerDay: 0.02 },
   insects: { initial: 0, baseCap: 100, startsVisible: false, decayPerDay: 0 },
   songs: { initial: 0, baseCap: 100, startsVisible: false, decayPerDay: 0 },
+  deadwood: { initial: 0, baseCap: 100, startsVisible: false, decayPerDay: 0.01 },
+  resin: { initial: 0, baseCap: 100, startsVisible: false, decayPerDay: 0 },
 } as const satisfies Record<string, ResourceDef>;
 
 export type ResourceId = keyof typeof RESOURCES;

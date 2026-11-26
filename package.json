@@ -1,7 +1,7 @@
 {
   "name": "sylve",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Sylve: an incremental game where you grow a forest from bare ground to old-growth, then let it burn.",
   "type": "module",
   "engines": {

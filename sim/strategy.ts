@@ -1,9 +1,11 @@
+import { ADAPTATIONS, ADAPTATION_IDS } from '../src/data/adaptations';
 import { DISCOVERIES, DISCOVERY_IDS } from '../src/data/discoveries';
 import { NICHE_IDS } from '../src/data/niches';
 import { PLANTS, PLANT_IDS, type PlantId } from '../src/data/plants';
 import { RESOURCE_IDS, type Amounts, type ResourceId } from '../src/data/resources';
 import { SPECIES_IDS } from '../src/data/species';
 import {
+  adapt,
   assignNiches,
   callSize,
   callSpecies,
@@ -13,9 +15,10 @@ import {
 } from '../src/engine/actions';
 import { canAfford, getAffordability, getPlantCost } from '../src/engine/costs';
 import { freeNiches, getNiches, speciesIn } from '../src/engine/habitat';
-import { getCaps } from '../src/engine/production';
+import { getCaps, getProduction } from '../src/engine/production';
 import type { GameState } from '../src/engine/state';
 import {
+  isAdaptationAvailable,
   isDiscoveryAvailable,
   isPlantUnlocked,
   isSpeciesUnlocked,
@@ -28,8 +31,10 @@ export interface BotProfile {
   readonly clicksPerSecond: number;
   /** It stops clicking after this many real seconds, like most players. */
   readonly clickForSeconds: number;
-  /** It saves up for a plantation only if it can afford it within this many seconds. */
+  /** It saves up for a plantation only if it can afford it within this many seconds... */
   readonly patienceSeconds: number;
+  /** ...plus this share of the time played so far: late game, players wait longer. */
+  readonly patienceGrowth: number;
   /** Share of the grassland it lets rabbits have (more means overgrazing). */
   readonly rabbitShare: number;
 }
@@ -39,6 +44,7 @@ export const ACTIVE_PLAYER: BotProfile = {
   clicksPerSecond: 2,
   clickForSeconds: 120,
   patienceSeconds: 60,
+  patienceGrowth: 0.03,
   rabbitShare: 0.5,
 };
 
@@ -80,23 +86,31 @@ function isUseful(state: GameState, id: PlantId, blocked: Set<ResourceId>): bool
 }
 
 /** Picks the plantation to save for: the one owned the least, among those useful and reachable soon. */
-function target(state: GameState, profile: BotProfile): PlantId | undefined {
+function target(state: GameState, patience: number): PlantId | undefined {
   const blocked = blockedStorage(state);
+  const production = getProduction(state);
   const candidates = PLANT_IDS.filter((id) => {
     if (!isPlantUnlocked(state, id) || !isUseful(state, id, blocked)) {
       return false;
     }
-    const affordability = getAffordability(state, getPlantCost(state, id));
+    const affordability = getAffordability(state, getPlantCost(state, id), production);
     return (
       affordability.kind === 'now' ||
-      (affordability.kind === 'wait' && affordability.seconds <= profile.patienceSeconds)
+      (affordability.kind === 'wait' && affordability.seconds <= patience)
     );
   });
-  // Storage that unblocks something comes first.
+  // First a home for a species that has none yet, then storage that unblocks something.
+  const homeless = NICHE_IDS.filter(
+    (niche) =>
+      getNiches(state)[niche] === 0 && speciesIn(niche).some((id) => isSpeciesUnlocked(state, id)),
+  );
+  const housing = candidates.filter((id) =>
+    homeless.some((niche) => (PLANTS[id].niches[niche] ?? 0) > 0),
+  );
   const unblocking = candidates.filter((id) =>
     RESOURCE_IDS.some((r) => blocked.has(r) && (PLANTS[id].storage[r] ?? 0) > 0),
   );
-  const pool = unblocking.length > 0 ? unblocking : candidates;
+  const pool = housing.length > 0 ? housing : unblocking.length > 0 ? unblocking : candidates;
   pool.sort((a, b) => ownedCount(state, a) - ownedCount(state, b));
   return pool[0];
 }
@@ -147,6 +161,12 @@ export function botTurn(
       bought = true;
     }
   }
+  for (const id of ADAPTATION_IDS) {
+    if (isAdaptationAvailable(next, id) && canAfford(next, ADAPTATIONS[id].cost)) {
+      next = adapt(next, id);
+      bought = true;
+    }
+  }
   next = assignAll(next, profile);
   for (const id of SPECIES_IDS) {
     if (callSize(next, id) >= 1) {
@@ -155,8 +175,9 @@ export function botTurn(
       next = called;
     }
   }
+  const patience = profile.patienceSeconds + profile.patienceGrowth * elapsedSeconds;
   for (let i = 0; i < 20; i++) {
-    const id = target(next, profile);
+    const id = target(next, patience);
     if (id === undefined || !canAfford(next, getPlantCost(next, id))) {
       break;
     }

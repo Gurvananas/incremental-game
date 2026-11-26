@@ -29,7 +29,12 @@ describe('serialize / deserialize', () => {
   it('round-trips a game state', () => {
     const state = advance(createInitialState(123), 500);
     const loaded = deserialize(serialize(state, 1_000));
-    expect(loaded).toEqual({ version: SAVE_VERSION, savedAt: 1_000, state });
+    // The journal's recent events are not kept: they were already told.
+    expect(loaded).toEqual({
+      version: SAVE_VERSION,
+      savedAt: 1_000,
+      state: { ...state, events: [] },
+    });
   });
 
   it('rejects text that is not JSON', () => {

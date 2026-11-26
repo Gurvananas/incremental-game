@@ -6,7 +6,7 @@ food web, then let it burn and grow back stronger.
 Un jeu incrémental sur une forêt : faire pousser une friche jusqu'à la forêt ancienne, équilibrer
 un réseau vivant, puis la laisser brûler pour renaître plus forte.
 
-**Status:** v0.2. Eras I to III are playable (about 3 hours): plantations, discoveries, fauna in habitat niches, a food web with predators, and the Balance index.
+**Status:** v0.3. Eras I to IV are playable (about 7 hours): plantations, discoveries, fauna and food web, the Balance index, trees that grow old and fall, canopy and shade, daily weather, threats and adaptations.
 
 ## Develop
 

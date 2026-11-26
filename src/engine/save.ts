@@ -1,8 +1,19 @@
+import { ADAPTATION_IDS, type AdaptationId } from '../data/adaptations';
 import { DISCOVERY_IDS, type DiscoveryId } from '../data/discoveries';
 import { PLANT_IDS, type PlantId } from '../data/plants';
 import { RESOURCE_IDS } from '../data/resources';
 import { SPECIES_IDS, type SpeciesId } from '../data/species';
-import { initialResources, noAnimals, noPlants, type GameState, type Seedling } from './state';
+import { WEATHER_KINDS, type WeatherKind } from '../data/weather';
+import {
+  FIRST_MAST_YEAR,
+  INITIAL_WEATHER,
+  initialResources,
+  noAnimals,
+  noPlants,
+  type GameState,
+  type Seedling,
+  type Weather,
+} from './state';
 
 /**
  * Save format version. Bump it, and add a migration below, whenever the
@@ -100,6 +111,27 @@ function hydrateDiscoveries(raw: unknown): DiscoveryId[] {
   return [...new Set(raw.filter(isDiscoveryId))];
 }
 
+function isAdaptationId(value: unknown): value is AdaptationId {
+  return (ADAPTATION_IDS as readonly unknown[]).includes(value);
+}
+
+function isWeatherKind(value: unknown): value is WeatherKind {
+  return (WEATHER_KINDS as readonly unknown[]).includes(value);
+}
+
+function hydrateWeather(raw: unknown): Weather {
+  if (
+    isRecord(raw) &&
+    isWeatherKind(raw.kind) &&
+    isWeatherKind(raw.next) &&
+    isNonNegativeNumber(raw.daysLeft) &&
+    isNonNegativeNumber(raw.nextDays)
+  ) {
+    return { kind: raw.kind, next: raw.next, daysLeft: raw.daysLeft, nextDays: raw.nextDays };
+  }
+  return INITIAL_WEATHER;
+}
+
 export function serialize(state: GameState, savedAt: number): string {
   const file: SaveFile = { version: SAVE_VERSION, savedAt, state };
   return JSON.stringify(file);
@@ -150,14 +182,37 @@ function hydrate(raw: unknown): GameState {
       }
     }
   }
+  const plants = hydratePlants(raw.plants);
+  // Old trees are a subset of the adults.
+  const old = hydratePlants(raw.old);
+  for (const id of PLANT_IDS) {
+    old[id] = Math.min(old[id], plants[id]);
+  }
   return {
     days: raw.days,
     resources,
-    plants: hydratePlants(raw.plants),
+    plants,
+    old,
     seedlings: hydrateSeedlings(raw.seedlings),
     discoveries: hydrateDiscoveries(raw.discoveries),
+    adaptations: Array.isArray(raw.adaptations)
+      ? [...new Set(raw.adaptations.filter(isAdaptationId))]
+      : [],
     animals: hydrateSpecies(raw.animals, false),
     assignments: hydrateSpecies(raw.assignments, true),
+    weather: hydrateWeather(raw.weather),
+    mastYear:
+      isNonNegativeNumber(raw.mastYear) && Number.isInteger(raw.mastYear)
+        ? raw.mastYear
+        : FIRST_MAST_YEAR,
+    beetleRiskDays:
+      typeof raw.beetleRiskDays === 'number' && Number.isInteger(raw.beetleRiskDays)
+        ? raw.beetleRiskDays
+        : 0,
+    outbreak: raw.outbreak === true,
+    // Past events were already told; the journal starts afresh after a load.
+    events: [],
+    eventCount: isNonNegativeNumber(raw.eventCount) ? Math.floor(raw.eventCount) : 0,
     rng: raw.rng >>> 0,
   };
 }

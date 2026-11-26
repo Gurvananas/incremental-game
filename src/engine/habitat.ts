@@ -3,16 +3,21 @@ import { PLANTS, PLANT_IDS } from '../data/plants';
 import { SPECIES, SPECIES_IDS, type SpeciesId } from '../data/species';
 import type { GameState } from './state';
 
-/** Niches offered by adult plantations, per type. */
+/** Niches offered by adult plantations, old trees and animals that make some, per type. */
 export function getNiches(state: GameState): Record<NicheId, number> {
   const niches = {} as Record<NicheId, number>;
   for (const niche of NICHE_IDS) {
-    niches[niche] = 0;
-  }
-  for (const plant of PLANT_IDS) {
-    for (const niche of NICHE_IDS) {
-      niches[niche] += state.plants[plant] * (PLANTS[plant].niches[niche] ?? 0);
+    let total = 0;
+    for (const plant of PLANT_IDS) {
+      total += state.plants[plant] * (PLANTS[plant].niches[niche] ?? 0);
+      total += state.old[plant] * (PLANTS[plant].oldNiches[niche] ?? 0);
     }
+    let made = 0;
+    for (const species of SPECIES_IDS) {
+      made += state.animals[species] * (SPECIES[species].makesNiches[niche] ?? 0);
+    }
+    // Only whole niches can be given to a species.
+    niches[niche] = total + Math.floor(made);
   }
   return niches;
 }

@@ -1,10 +1,19 @@
 import { getCalendar } from '../engine/calendar';
 import type { GameState } from '../engine/state';
+import { ADAPTATION_IDS } from '../data/adaptations';
 import { SPECIES_IDS } from '../data/species';
+import { adultTrees } from '../engine/forest';
 import { getProduction } from '../engine/production';
-import { getEra, isBalanceActive, isResourceVisible, isSpeciesUnlocked } from '../engine/unlocks';
+import {
+  getEra,
+  isAdaptationAvailable,
+  isBalanceActive,
+  isResourceVisible,
+  isSpeciesUnlocked,
+} from '../engine/unlocks';
 import { getLocale, t } from '../i18n';
 import { button, classSlot, h, hiddenSlot, slot, textSlot } from './dom';
+import { createAdaptationsTab } from './adaptationsTab';
 import { createFaunaTab } from './faunaTab';
 import { createForestTab, type Act } from './forestTab';
 import { formatNumber, formatPercent, roman } from './format';
@@ -13,7 +22,7 @@ import { createMyceliumTab } from './myceliumTab';
 import { createNarrator } from './narrator';
 import { createResourcesPanel } from './resourcesPanel';
 
-type TabId = 'forest' | 'mycelium' | 'fauna';
+type TabId = 'forest' | 'mycelium' | 'fauna' | 'adaptations';
 
 export interface App {
   /** Writes only what changed since the last render. */
@@ -28,6 +37,8 @@ export function mountApp(root: HTMLElement, journal: Journal, act: Act): App {
   const setEra = textSlot(era);
   const date = h('p', { className: 'date' });
   const setDate = textSlot(date);
+  const sky = h('p', { className: 'sky' });
+  const setSky = textSlot(sky);
   const balance = h('p', { className: 'balance' });
   const setBalance = textSlot(balance);
   const setBalanceHidden = hiddenSlot(balance);
@@ -39,10 +50,16 @@ export function mountApp(root: HTMLElement, journal: Journal, act: Act): App {
   const forest = createForestTab(act);
   const mycelium = createMyceliumTab(act);
   const fauna = createFaunaTab(act);
+  const adaptations = createAdaptationsTab(act);
   const narrate = createNarrator(journal);
 
   let active: TabId = 'forest';
-  const open: Record<TabId, boolean> = { forest: true, mycelium: false, fauna: false };
+  const open: Record<TabId, boolean> = {
+    forest: true,
+    mycelium: false,
+    fauna: false,
+    adaptations: false,
+  };
   const applyTabs = (): void => {
     for (const tab of tabs) {
       tab.setHidden(!open[tab.id]);
@@ -55,6 +72,7 @@ export function mountApp(root: HTMLElement, journal: Journal, act: Act): App {
       { id: 'forest', label: t('tab.forest'), panel: forest.element },
       { id: 'mycelium', label: t('tab.mycelium'), panel: mycelium.element },
       { id: 'fauna', label: t('tab.fauna'), panel: fauna.element },
+      { id: 'adaptations', label: t('tab.adaptations'), panel: adaptations.element },
     ] as const
   ).map((tab) => {
     const element = button({ className: 'tab', text: tab.label }, [], () => {
@@ -76,6 +94,7 @@ export function mountApp(root: HTMLElement, journal: Journal, act: Act): App {
       h('h1', { text: t('game.title') }),
       era,
       balance,
+      sky,
       date,
       h('span', { className: 'version', text: `v${__APP_VERSION__}` }),
     ]),
@@ -109,8 +128,17 @@ export function mountApp(root: HTMLElement, journal: Journal, act: Act): App {
     );
 
     const locale = getLocale();
+    const modifiers = getProduction(state).modifiers;
+    const skyParts = [t(`weather.${state.weather.kind}`)];
+    if (adultTrees(state) > 0) {
+      skyParts.push(t('canopy.label', { percent: formatPercent(modifiers.canopy, { locale }) }));
+    }
+    if (modifiers.mast) {
+      skyParts.push(t('mast.label'));
+    }
+    setSky(skyParts.join(' · '));
     if (isBalanceActive(state)) {
-      const { balance: value, balanceMultiplier } = getProduction(state).modifiers;
+      const { balance: value, balanceMultiplier } = modifiers;
       setBalance(
         t('balance.label', { value: formatNumber(Math.round(value * 10) / 10, { locale }) }),
       );
@@ -122,6 +150,8 @@ export function mountApp(root: HTMLElement, journal: Journal, act: Act): App {
 
     open.mycelium = isResourceVisible(state, 'spores');
     open.fauna = SPECIES_IDS.some((id) => isSpeciesUnlocked(state, id));
+    open.adaptations =
+      state.adaptations.length > 0 || ADAPTATION_IDS.some((id) => isAdaptationAvailable(state, id));
     if (!open[active]) {
       active = 'forest';
     }
@@ -132,6 +162,7 @@ export function mountApp(root: HTMLElement, journal: Journal, act: Act): App {
     forest.render(state);
     mycelium.render(state);
     fauna.render(state);
+    adaptations.render(state);
     narrate.observe(state);
   };
 

@@ -1,3 +1,4 @@
+import { ADAPTATIONS, type AdaptationId } from '../data/adaptations';
 import { DISCOVERIES, type DiscoveryId } from '../data/discoveries';
 import type { Era } from '../data/eras';
 import { PLANTS, PLANT_IDS, type PlantId, type Requirement } from '../data/plants';
@@ -50,6 +51,17 @@ export function getEra(state: GameState): Era {
     }
   }
   return era;
+}
+
+export function hasAdaptation(state: GameState, id: AdaptationId): boolean {
+  return state.adaptations.includes(id);
+}
+
+/** Not adopted yet, and every discovery it needs made. */
+export function isAdaptationAvailable(state: GameState, id: AdaptationId): boolean {
+  return (
+    !hasAdaptation(state, id) && ADAPTATIONS[id].requires.every((req) => hasDiscovery(state, req))
+  );
 }
 
 export function isSpeciesUnlocked(state: GameState, id: SpeciesId): boolean {

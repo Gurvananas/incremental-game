@@ -1,5 +1,6 @@
 import type { DiscoveryId } from './discoveries';
-import type { NicheId } from './niches';
+import type { NicheAmounts, NicheId } from './niches';
+import type { PlantId } from './plants';
 import type { Amounts, ResourceId } from './resources';
 
 /**
@@ -16,6 +17,9 @@ export const SPECIES_IDS = [
   'hedgehog',
   'rabbit',
   'fox',
+  'woodpecker',
+  'squirrel',
+  'jay',
 ] as const;
 export type SpeciesId = (typeof SPECIES_IDS)[number];
 
@@ -44,6 +48,12 @@ export interface SpeciesDef {
   readonly hibernates: boolean;
   /** Counts toward overgrazing. */
   readonly grazer: boolean;
+  /** Niches each individual makes for others (a woodpecker carves cavities). */
+  readonly makesNiches: NicheAmounts;
+  /** Share of bark beetle damage each fed individual prevents. */
+  readonly beetleShield: number;
+  /** Free seedlings each individual plants per game day (forgotten caches). */
+  readonly plantsPerDay: Readonly<Partial<Record<PlantId, number>>>;
   readonly requires: readonly DiscoveryId[];
 }
 
@@ -57,14 +67,17 @@ const BASE = {
   balanceWeight: 1,
   hibernates: false,
   grazer: false,
+  makesNiches: {},
+  beetleShield: 0,
+  plantsPerDay: {},
 } as const satisfies Omit<SpeciesDef, 'niche' | 'requires'>;
 
 export const SPECIES: Readonly<Record<SpeciesId, SpeciesDef>> = {
   earthworm: {
     ...BASE,
     niche: 'soil',
-    diet: [{ resource: 'litter', perDay: 0.04 }],
-    produces: { humus: 0.02 },
+    diet: [{ resource: 'litter', perDay: 0.06 }],
+    produces: { humus: 0.03 },
     storage: { humus: 5 },
     requires: ['symbiosis'],
   },
@@ -131,5 +144,35 @@ export const SPECIES: Readonly<Record<SpeciesId, SpeciesDef>> = {
     birthsPerDay: 0.02,
     arrivalsPerDay: 0.01,
     requires: ['predation'],
+  },
+  woodpecker: {
+    ...BASE,
+    niche: 'deadwood',
+    diet: [{ resource: 'insects', perDay: 0.08 }],
+    makesNiches: { cavity: 0.5 },
+    beetleShield: 0.05,
+    requires: ['decomposition'],
+  },
+  squirrel: {
+    ...BASE,
+    niche: 'cavity',
+    diet: [
+      { resource: 'seeds', perDay: 0.1 },
+      { resource: 'berries', perDay: 0.1 },
+    ],
+    storage: { seeds: 20 },
+    plantsPerDay: { hazel: 0.0005 },
+    requires: ['migration'],
+  },
+  jay: {
+    ...BASE,
+    niche: 'branch',
+    diet: [
+      { resource: 'seeds', perDay: 0.05 },
+      { resource: 'berries', perDay: 0.05 },
+    ],
+    seedBonus: 0.02,
+    plantsPerDay: { hazel: 0.0005 },
+    requires: ['migration'],
   },
 };

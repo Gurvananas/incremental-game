@@ -1,3 +1,4 @@
+import { ADAPTATIONS } from '../data/adaptations';
 import {
   BASE_RAIN_PER_SECOND,
   SEASON_PRODUCTION_MULTIPLIER,
@@ -12,11 +13,15 @@ import {
   PEST_MAX_SAP_LOSS,
   PEST_THRESHOLD,
 } from '../data/ecology';
-import { PLANTS, PLANT_IDS, type PlantId } from '../data/plants';
+import { SHADE_BASE, YOUNG_PRODUCTION } from '../data/forest';
+import { PLANTS, PLANT_IDS, type PlantDef, type PlantId } from '../data/plants';
 import { RESOURCE_IDS, RESOURCES, type ResourceId } from '../data/resources';
 import { SPECIES, SPECIES_IDS, type Food, type SpeciesId } from '../data/species';
+import { DROUGHT_PRODUCTION, DROUGHT_WATER_SHARE } from '../data/threats';
 import { SECONDS_PER_DAY, type Season } from '../data/time';
+import { MAST_SEED_MULTIPLIER, WEATHER } from '../data/weather';
 import { getCalendar } from './calendar';
+import { adultTrees, getCanopy, youngCounts } from './forest';
 import { capacityFrom, getNiches } from './habitat';
 import type { GameState } from './state';
 import { isBalanceActive } from './unlocks';
@@ -38,9 +43,9 @@ export interface RateLine {
 
 /** The multipliers behind the numbers, shown to the player. */
 export interface Modifiers {
-  /** Seasonal multiplier on Sap. */
+  /** Seasonal multiplier on Sap (dormant buds and weather included). */
   readonly sapSeason: number;
-  /** Nitrogen bonus on Sap (1 = none). */
+  /** Nitrogen and tree bonus on Sap (1 = none). */
   readonly sapBonus: number;
   /** Share of the water demand that is met (1 = no shortage). */
   readonly waterSupply: number;
@@ -50,10 +55,16 @@ export interface Modifiers {
   readonly balanceMultiplier: number;
   /** Multiplier on Sap from pests (1 = no pests). */
   readonly pests: number;
-  /** Multiplier on Seeds from pollinators and ants. */
+  /** Multiplier on Seeds from pollinators, ants and jays. */
   readonly seedBonus: number;
   /** Multiplier on seedling growth from overgrazing (1 = none). */
   readonly grazing: number;
+  /** Share of the land under tree crowns. */
+  readonly canopy: number;
+  /** Summer drought: thirsty plants produce half. */
+  readonly drought: boolean;
+  /** Mast year: seeds ×3. */
+  readonly mast: boolean;
 }
 
 export interface Production {
@@ -89,7 +100,7 @@ function perSpecies<T>(value: T): PerSpecies<T> {
   return values;
 }
 
-/** Storage caps: base, plus plantations and animals, times discovery multipliers. */
+/** Storage caps: base, plus plantations and animals, times discovery and adaptation multipliers. */
 export function getCaps(state: GameState): PerResource {
   const caps = perResource(0);
   for (const id of RESOURCE_IDS) {
@@ -102,6 +113,9 @@ export function getCaps(state: GameState): PerResource {
     }
     for (const discovery of state.discoveries) {
       cap *= DISCOVERIES[discovery].storageMultiplier[id] ?? 1;
+    }
+    for (const adaptation of state.adaptations) {
+      cap *= ADAPTATIONS[adaptation].storageMultiplier[id] ?? 1;
     }
     caps[id] = cap;
   }
@@ -143,6 +157,18 @@ function satisfaction(stock: number, income: number, demand: number): number {
   return Math.min(1, Math.max(0, income) / demand);
 }
 
+/** Sun plants suffer under the canopy; shade plants need it. */
+function lightFactor(def: PlantDef, canopy: number): number {
+  switch (def.light) {
+    case 'sun':
+      return 1 - canopy;
+    case 'shade':
+      return Math.min(1, SHADE_BASE + canopy);
+    case 'any':
+      return 1;
+  }
+}
+
 /** Adults plus seedlings, for every plant, in one pass over the seedlings. */
 function ownedCounts(state: GameState): Record<PlantId, number> {
   const owned = { ...state.plants } as Record<PlantId, number>;
@@ -153,10 +179,13 @@ function ownedCounts(state: GameState): Record<PlantId, number> {
 }
 
 export function getProduction(state: GameState): Production {
-  const { season } = getCalendar(state.days);
+  const { season, year } = getCalendar(state.days);
+  const weather = WEATHER[state.weather.kind];
   const caps = getCaps(state);
   const niches = getNiches(state);
   const owned = ownedCounts(state);
+  const young = youngCounts(state);
+  const canopy = getCanopy(state);
   const capacity = perSpecies(0);
   for (const id of SPECIES_IDS) {
     capacity[id] = capacityFrom(state, id, niches);
@@ -167,6 +196,7 @@ export function getProduction(state: GameState): Production {
   }
   const income = (id: ResourceId): number =>
     lines[id].reduce((sum, line) => sum + Math.max(0, line.amount), 0);
+  const adopted = state.adaptations.map((id) => ADAPTATIONS[id]);
 
   // Multipliers that depend only on the state.
   const balance = getBalance(state);
@@ -180,10 +210,13 @@ export function getProduction(state: GameState): Production {
       : 1;
   let sapBonus = 1;
   let shield = 0;
+  let humusPenalty = 0;
   for (const plant of PLANT_IDS) {
     sapBonus += state.plants[plant] * PLANTS[plant].sapBonus;
     shield += state.plants[plant] * PLANTS[plant].grazingShield;
+    humusPenalty += state.plants[plant] * PLANTS[plant].humusPenalty;
   }
+  sapBonus += adultTrees(state) * adopted.reduce((sum, a) => sum + a.sapPerTree, 0);
   const grazers = SPECIES_IDS.reduce(
     (sum, id) => sum + (SPECIES[id].grazer ? state.animals[id] : 0),
     0,
@@ -195,40 +228,65 @@ export function getProduction(state: GameState): Production {
         Math.min(1, (grazed - OVERGRAZING_THRESHOLD) / (1 - OVERGRAZING_THRESHOLD))
       : 0;
   const grazing = 1 - slowdown * (1 - Math.min(1, shield));
+  const drought = season === 'summer' && state.resources.water < DROUGHT_WATER_SHARE * caps.water;
+  const mast = year === state.mastYear;
+  const frostProof = adopted.some((a) => a.frostProof);
+  const drinking =
+    weather.drinking *
+    (season === 'summer' ? adopted.reduce((product, a) => product * a.summerDrinking, 1) : 1);
 
   // Rain, then what plants drink against what comes in.
-  const rain = BASE_RAIN_PER_SECOND * SEASON_RAIN_MULTIPLIER[season];
+  const rain = BASE_RAIN_PER_SECOND * SEASON_RAIN_MULTIPLIER[season] * weather.rain;
   lines.water.push({ source: 'rain', count: 0, amount: rain });
   let waterIncome = rain;
   let waterDemand = 0;
   for (const plant of PLANT_IDS) {
     waterIncome += state.plants[plant] * (PLANTS[plant].produces.water ?? 0);
-    waterDemand += owned[plant] * PLANTS[plant].drinks;
+    waterDemand += owned[plant] * PLANTS[plant].drinks * drinking;
   }
   const waterSupply = satisfaction(state.resources.water, waterIncome, waterDemand);
 
-  // What plants produce.
-  const sapSeason = seasonFactor('sap', season);
+  // What plants produce: adults, young ones at half, plus what old trees add.
+  const sapSeason =
+    seasonFactor('sap', season) *
+    (season === 'winter' ? adopted.reduce((product, a) => product * a.winterSap, 1) : 1) *
+    weather.sap;
+  const weatherFactor: Partial<Record<ResourceId, number>> = {
+    sap: sapSeason / seasonFactor('sap', season),
+    spores: weather.spores,
+    nectar: frostProof ? 1 : weather.nectar,
+    seeds: mast ? MAST_SEED_MULTIPLIER : 1,
+  };
   for (const plant of PLANT_IDS) {
     const def = PLANTS[plant];
     const adults = state.plants[plant];
-    if (adults > 0) {
-      const thirst = def.drinks > 0 ? waterSupply : 1;
+    const old = state.old[plant];
+    const producers = adults + YOUNG_PRODUCTION * young[plant];
+    if (producers > 0) {
+      const thirst = def.drinks > 0 ? waterSupply * (drought ? DROUGHT_PRODUCTION : 1) : 1;
+      const light = lightFactor(def, canopy);
       for (const id of RESOURCE_IDS) {
-        const base = def.produces[id];
-        if (base === undefined) {
+        const base = def.produces[id] ?? 0;
+        const fromOld = def.oldProduces[id] ?? 0;
+        if (base === 0 && fromOld === 0) {
           continue;
         }
-        let amount = adults * base * thirst * seasonFactor(id, season) * balanceMultiplier;
+        let amount =
+          producers * base * thirst * light * seasonFactor(id, season) * (weatherFactor[id] ?? 1);
         if (id === 'sap') {
           amount *= sapBonus * pests;
         }
+        amount = (amount + old * fromOld) * balanceMultiplier;
         lines[id].push({ source: plant, count: adults, amount });
       }
     }
     const count = owned[plant];
     if (def.drinks > 0 && count > 0) {
-      lines.water.push({ source: plant, count, amount: -count * def.drinks * waterSupply });
+      lines.water.push({
+        source: plant,
+        count,
+        amount: -count * def.drinks * drinking * waterSupply,
+      });
     }
   }
 
@@ -320,13 +378,31 @@ export function getProduction(state: GameState): Production {
     seedBonus += n * def.seedBonus * fed[id];
   }
 
-  // Pollinators and ants multiply the seeds plants make.
-  if (seedBonus !== 1) {
-    lines.seeds = lines.seeds.map((line) =>
-      line.amount > 0 && (PLANT_IDS as readonly string[]).includes(line.source)
-        ? { ...line, amount: line.amount * seedBonus }
+  // Multipliers on whole resources: pollinators on seeds, acid pine litter on humus,
+  // and what discoveries and adaptations multiply.
+  const scale = (id: ResourceId, factor: number, plantsOnly: boolean): void => {
+    if (factor === 1) {
+      return;
+    }
+    lines[id] = lines[id].map((line) =>
+      line.amount > 0 &&
+      line.source !== 'rain' &&
+      (!plantsOnly || (PLANT_IDS as readonly string[]).includes(line.source))
+        ? { ...line, amount: line.amount * factor }
         : line,
     );
+  };
+  scale('seeds', seedBonus, true);
+  scale('humus', Math.max(0.5, 1 - humusPenalty), false);
+  for (const id of RESOURCE_IDS) {
+    let factor = 1;
+    for (const discovery of state.discoveries) {
+      factor *= DISCOVERIES[discovery].productionMultiplier[id] ?? 1;
+    }
+    for (const adaptation of adopted) {
+      factor *= adaptation.productionMultiplier[id] ?? 1;
+    }
+    scale(id, factor, false);
   }
 
   // Perishable resources rot.
@@ -357,6 +433,9 @@ export function getProduction(state: GameState): Production {
       pests,
       seedBonus,
       grazing,
+      canopy,
+      drought,
+      mast,
     },
     fed,
     eaten,
